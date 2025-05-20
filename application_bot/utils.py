@@ -16,15 +16,8 @@ def get_app_root_dir() -> str:
     For development, this is the 'application_bot' subfolder where these files reside.
     """
     if getattr(sys, 'frozen', False):  # PyInstaller bundle
-        # sys.executable is C:\Path\To\dist\ApplicationBotGUI\ApplicationBotGUI.exe
-        # os.path.dirname(sys.executable) is C:\Path\To\dist\ApplicationBotGUI\
-        # This is correct for bundled app where settings.json is at the root.
         return os.path.dirname(sys.executable)
     else:
-        # In development:
-        # __file__ is, for example, C:\Dev\APPLICATION_BOT\Application_bot\application_bot\utils.py
-        # os.path.dirname(__file__) is C:\Dev\APPLICATION_BOT\Application_bot\application_bot\
-        # This is where settings.json, questions.json are located.
         return os.path.dirname(os.path.abspath(__file__))
 
 def get_data_file_path(filename_at_root: str) -> str:
@@ -44,10 +37,20 @@ def get_external_file_path(relative_path_from_app_root: str) -> str:
 
 def load_json_file(file_path: str, file_description: str) -> Optional[Any]:
     """Loads a JSON file and handles errors."""
+    if not os.path.exists(file_path): # Check before opening
+        logger.warning(f"{file_description} file not found at {file_path}. This might be normal if it's the first run for questions.")
+        return None # Return None, not an empty list, to distinguish from an empty file.
+        
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
+            content = f.read()
+            if not content.strip(): # File is empty or only whitespace
+                logger.warning(f"{file_description} file at {file_path} is empty.")
+                if file_description.lower() == "questions": # Specifically for questions, an empty file means no questions
+                    return []
+                return None # For settings, an empty file is an error
+            return json.loads(content)
+    except FileNotFoundError: # Should be caught by os.path.exists, but as a safeguard
         logger.critical(f"CRITICAL: {file_description} file not found at {file_path}")
     except json.JSONDecodeError as e:
         logger.critical(f"CRITICAL: Error decoding {file_description} file at {file_path}: {e}")
@@ -78,7 +81,6 @@ def load_settings(path: str = "settings.json") -> bool:
     if SETTINGS is None:
         return False
 
-    # Create essential folders if they don't exist. These paths are relative to app root.
     for folder_key in ["APPLICATION_FOLDER", "TEMP_PHOTO_FOLDER"]:
         folder_name = SETTINGS.get(folder_key)
         if folder_name:
@@ -96,16 +98,61 @@ def load_questions() -> bool:
     global QUESTIONS, SETTINGS
     if not SETTINGS:
         logger.error("Settings not loaded. Cannot load questions.")
+        QUESTIONS = [] # Ensure QUESTIONS is at least an empty list if settings aren't loaded
         return False
     
     questions_file_name = SETTINGS.get("QUESTIONS_FILE")
     if not questions_file_name:
         logger.critical("CRITICAL: 'QUESTIONS_FILE' not specified in settings.json.")
+        QUESTIONS = []
         return False
 
     questions_path = get_data_file_path(questions_file_name)
-    QUESTIONS = load_json_file(questions_path, "Questions")
-    return QUESTIONS is not None
+    loaded_data = load_json_file(questions_path, "Questions")
+
+    if loaded_data is None: # File not found or major error
+        logger.warning(f"Questions file '{questions_path}' not found or error loading. Defaulting to empty questions list.")
+        QUESTIONS = []
+        return False # Indicate failure to load from file, though QUESTIONS is set to empty.
+    elif not isinstance(loaded_data, list):
+        logger.error(f"Questions file '{questions_path}' does not contain a list. Defaulting to empty questions list.")
+        QUESTIONS = []
+        return False
+    
+    QUESTIONS = loaded_data
+    logger.info(f"Successfully loaded {len(QUESTIONS)} questions from {questions_path}.")
+    return True
+
+def save_questions(questions_data: List[Dict[str, str]], path: Optional[str] = None) -> bool:
+    """Saves the questions list to a JSON file and updates the global QUESTIONS."""
+    global QUESTIONS, SETTINGS
+
+    if path is None:
+        if SETTINGS and SETTINGS.get("QUESTIONS_FILE"):
+            file_name = SETTINGS["QUESTIONS_FILE"]
+        else:
+            logger.warning("QUESTIONS_FILE not found in settings, using default 'questions.json' for saving.")
+            file_name = "questions.json" 
+            if SETTINGS: 
+                SETTINGS["QUESTIONS_FILE"] = file_name # Update in-memory SETTINGS if we used a default
+    else: 
+        file_name = path
+
+    questions_file_path = get_data_file_path(file_name)
+    
+    try:
+        with open(questions_file_path, 'w', encoding='utf-8') as f:
+            json.dump(questions_data, f, ensure_ascii=False, indent=2) # Original questions.json used indent=2
+        logger.info(f"Questions successfully saved to {questions_file_path}")
+        QUESTIONS = list(questions_data) # Update global QUESTIONS with a copy
+        return True
+    except FileNotFoundError: 
+        logger.error(f"Error saving questions: Path not found {questions_file_path} (unexpected for 'w' mode).")
+    except TypeError as e:
+        logger.error(f"Error saving questions: Data is not JSON serializable. {e}")
+    except Exception as e:
+        logger.error(f"Error saving questions to {questions_file_path}: {e}")
+    return False
 
 def get_text(key: str, lang: Optional[str] = None, default: Optional[str] = None, **kwargs) -> str:
     global SETTINGS
@@ -118,14 +165,12 @@ def get_text(key: str, lang: Optional[str] = None, default: Optional[str] = None
     
     lang_pack = SETTINGS.get("LANGUAGES", {}).get(selected_lang)
     
-    # Fallback to default app language if specified lang or key not found
     if not lang_pack or key not in lang_pack:
         default_app_lang = SETTINGS.get("DEFAULT_LANG", "en")
         if selected_lang != default_app_lang:
             logger.debug(f"Key '{key}' not in lang '{selected_lang}', trying default app lang '{default_app_lang}'.")
             lang_pack = SETTINGS.get("LANGUAGES", {}).get(default_app_lang, {})
         
-        # If still not found in default, or default is the same and key missing, try English
         if (not lang_pack or key not in lang_pack) and default_app_lang != "en":
             logger.debug(f"Key '{key}' not in default app lang '{default_app_lang}', trying 'en'.")
             lang_pack = SETTINGS.get("LANGUAGES", {}).get("en", {})
@@ -146,14 +191,3 @@ def get_text(key: str, lang: Optional[str] = None, default: Optional[str] = None
     except Exception as e:
         logger.error(f"Error formatting text for key '{key}' in lang '{selected_lang}': {e}")
         return f"<FORMATTING_ERROR_{key}_{selected_lang}>"
-
-# Initial load logic (remains the same, called at the end of the file)
-# if not load_settings():
-#     logger.critical("Failed to load settings. Bot may not function correctly.")
-# if not load_questions():
-#     logger.warning("Failed to load questions. Application feature will be affected.")
-# This initial load is problematic if utils.py is imported by multiple modules before
-# main_gui_start() has a chance to call them. It's better to have main_gui_start()
-# explicitly call load_settings() and load_questions() and handle failures there.
-# The globals SETTINGS and QUESTIONS will be populated by these calls.
-# For now, I'll leave the initial load calls commented out here, assuming main_gui_start() handles it.

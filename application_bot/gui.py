@@ -11,12 +11,14 @@ import html
 import os
 import platform 
 import subprocess 
+# Add List if not already imported, for type hinting if you use it in method signatures
+from typing import List # Ensure this is imported
 
-from application_bot import utils # MODIFIED: Import utils module
+from application_bot import utils 
 from application_bot.main import create_bot_application, run_bot_async, stop_bot_async
 from application_bot.utils import (
     load_settings, load_questions, 
-    get_external_file_path, save_settings, get_text, get_data_file_path, get_app_root_dir # MODIFIED: Removed SETTINGS, QUESTIONS
+    get_external_file_path, save_settings, get_text, get_data_file_path, get_app_root_dir 
 )
 
 MAX_LOG_LINES_DEFAULT = 100
@@ -30,14 +32,8 @@ def get_asset_path(relative_path_from_gui_module_dir: str):
         So, we join MEIPASS with 'web_ui/gui.html'.
     """
     try:
-        # When frozen, assets like 'web_ui' are at the root of MEIPASS (e.g. dist/ApplicationBotGUI/web_ui)
-        # as defined by the .spec file: ('application_bot/web_ui', 'web_ui')
         base_path = sys._MEIPASS 
     except AttributeError:
-        # In development, gui.py is in application_bot/
-        # So, base_path is application_bot/
-        # And relative_path_from_gui_module_dir is 'web_ui/gui.html'
-        # which correctly forms application_bot/web_ui/gui.html
         base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path_from_gui_module_dir)
 
@@ -50,14 +46,18 @@ def _get_gui_localization_texts(lang_code: str) -> dict:
         "gui_status_error_prefix", "gui_status_crashed", "gui_status_settings_not_loaded",
         "gui_status_failed_create_app", "gui_start_button", "gui_stop_button",
         "gui_open_folder_button", "gui_log_lines_label", "gui_dark_theme_label",
-        "gui_lang_toggle_label", "gui_status_error_ui_disconnected" 
+        "gui_lang_toggle_label", "gui_status_error_ui_disconnected",
+        "gui_edit_questions_button", "gui_modal_questions_title", "gui_modal_add_question_button",
+        "gui_modal_save_button", "gui_modal_cancel_button", "gui_modal_delete_button",
+        "gui_modal_table_header_id", "gui_modal_table_header_text", "gui_modal_table_header_actions",
+        "gui_alert_question_empty_fields", "gui_alert_duplicate_ids", "gui_alert_questions_saved",
+        "gui_alert_questions_save_failed", "gui_alert_questions_save_error"
     ]
-    if not utils.SETTINGS: # MODIFIED: utils.SETTINGS
-        # Minimal fallback if settings aren't loaded at all
+    if not utils.SETTINGS: 
         return {key: key.replace("gui_", "").replace("_", " ").title() for key in gui_keys}
 
     for key in gui_keys:
-        texts[key] = get_text(key, lang_code, default=f"[{key.upper()}]") # Default if key is missing entirely
+        texts[key] = get_text(key, lang_code, default=f"[{key.upper()}]") 
     return texts
 
 
@@ -101,14 +101,14 @@ class PyWebviewApi:
 
     def open_applications_folder(self):
         logger.info("GUI API: Received request to open applications folder.")
-        if not utils.SETTINGS: # MODIFIED: utils.SETTINGS
+        if not utils.SETTINGS: 
             logger.error("GUI API: Cannot open applications folder, SETTINGS not loaded.")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_settings_not_loaded", self._gui.current_language, default="Error: Settings not loaded. Cannot open folder.")
                 self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
             return
 
-        app_folder_name = utils.SETTINGS.get("APPLICATION_FOLDER") # MODIFIED: utils.SETTINGS
+        app_folder_name = utils.SETTINGS.get("APPLICATION_FOLDER") 
         if not app_folder_name:
             logger.error("GUI API: APPLICATION_FOLDER not defined in settings.")
             if self._gui.window:
@@ -116,7 +116,7 @@ class PyWebviewApi:
                 self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
             return
         
-        folder_path = get_external_file_path(app_folder_name) # Resolves from app root
+        folder_path = get_external_file_path(app_folder_name) 
 
         if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
             logger.warning(f"GUI API: Applications folder '{folder_path}' does not exist. Attempting to create it.")
@@ -136,7 +136,7 @@ class PyWebviewApi:
                 os.startfile(normalized_folder_path)
             elif platform.system() == "Darwin":
                 subprocess.run(["open", normalized_folder_path], check=True)
-            else: # Linux and other UNIX-like
+            else: 
                 subprocess.run(["xdg-open", normalized_folder_path], check=True)
             logger.info(f"GUI API: Successfully requested to open folder: {normalized_folder_path}")
         except Exception as e:
@@ -146,25 +146,23 @@ class PyWebviewApi:
                 self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
 
     def set_system_language(self, lang_code: str):
-        """Sets the system's default language, saves it, and returns new translations."""
-        # global SETTINGS removed, using utils.SETTINGS
-        if not utils.SETTINGS: # MODIFIED: utils.SETTINGS
+        if not utils.SETTINGS: 
             logger.error("GUI API: SETTINGS not loaded, cannot change language.")
             return {"error": "SETTINGS not loaded", "new_lang": "en", "translations": _get_gui_localization_texts("en")}
 
-        original_lang = utils.SETTINGS.get("DEFAULT_LANG", "en") # MODIFIED: utils.SETTINGS
-        if lang_code not in utils.SETTINGS.get("LANGUAGES", {}): # MODIFIED: utils.SETTINGS
+        original_lang = utils.SETTINGS.get("DEFAULT_LANG", "en") 
+        if lang_code not in utils.SETTINGS.get("LANGUAGES", {}): 
             logger.warning(f"GUI API: Language code '{lang_code}' not found in settings. Reverting to original '{original_lang}'.")
             lang_code = original_lang
         
-        utils.SETTINGS["DEFAULT_LANG"] = lang_code # MODIFIED: utils.SETTINGS
+        utils.SETTINGS["DEFAULT_LANG"] = lang_code 
         
-        if save_settings(utils.SETTINGS): # MODIFIED: pass utils.SETTINGS
+        if save_settings(utils.SETTINGS): 
             logger.info(f"GUI API: System language changed to '{lang_code}' and settings saved.")
             self._gui.current_language = lang_code 
         else:
             logger.error(f"GUI API: Failed to save settings after changing language to '{lang_code}'. Reverting in-memory.")
-            utils.SETTINGS["DEFAULT_LANG"] = original_lang # MODIFIED: utils.SETTINGS
+            utils.SETTINGS["DEFAULT_LANG"] = original_lang 
             lang_code = original_lang 
         
         new_translations = _get_gui_localization_texts(lang_code)
@@ -175,8 +173,44 @@ class PyWebviewApi:
             
         return {"new_lang": lang_code, "translations": new_translations}
 
+    # New methods for questions
+    def get_questions(self):
+        logger.info("GUI API: Received request for questions.")
+        if utils.QUESTIONS is None:
+            logger.info("GUI API: utils.QUESTIONS is None, attempting to load.")
+            utils.load_questions() # Attempt to load them
+        
+        if utils.QUESTIONS is not None:
+            logger.debug(f"GUI API: Returning questions: {utils.QUESTIONS}")
+            return utils.QUESTIONS # Pywebview automatically serializes to JSON
+        else:
+            logger.warning("GUI API: Questions still not loaded after attempt, returning empty list to UI.")
+            return []
+
+    def save_questions(self, questions_data: List[dict]): # Type hint for clarity
+        logger.info(f"GUI API: Received request to save questions. Count: {len(questions_data) if questions_data else 'None'}")
+        if not isinstance(questions_data, list):
+            logger.error("GUI API: Invalid data format for saving questions. Expected a list.")
+            return False
+        
+        for i, q_item in enumerate(questions_data):
+            if not isinstance(q_item, dict) or "id" not in q_item or "text" not in q_item:
+                logger.error(f"GUI API: Invalid question item format at index {i}: {q_item}. Missing 'id' or 'text'.")
+                return False
+            if not q_item["id"] or not q_item["text"]: # Check for empty strings
+                 logger.error(f"GUI API: Question ID or text is empty at index {i}: {q_item}.")
+                 return False
+
+        if utils.save_questions(questions_data): # utils.save_questions handles file path and updates global
+            logger.info("GUI API: Questions saved and reloaded successfully via utils.save_questions.")
+            return True
+        else:
+            logger.error("GUI API: Failed to save questions via utils.save_questions.")
+            return False
+
 
 class BotGUI:
+    # ... (rest of BotGUI class remains the same) ...
     def __init__(self):
         self.window = None
         self.api = PyWebviewApi(self)
@@ -294,9 +328,9 @@ class BotGUI:
              self.update_status("gui_status_settings_not_loaded", True, False)
              logger.error("GUI: Attempted to start bot, but settings are not marked as loaded for GUI.")
              return
-        if utils.QUESTIONS is None: # MODIFIED: utils.QUESTIONS
+        if utils.QUESTIONS is None: 
             load_questions() 
-            if utils.QUESTIONS is None: # MODIFIED: utils.QUESTIONS
+            if utils.QUESTIONS is None: 
                 logger.warning("GUI: questions.json is still not loaded. /apply may fail.")
 
 
@@ -349,7 +383,7 @@ class BotGUI:
     def on_frontend_ready(self):
         logger.info("GUI: Frontend reported ready. Initializing GUI state.")
         
-        self.current_language = utils.SETTINGS.get("DEFAULT_LANG", "en") if utils.SETTINGS else "en" # MODIFIED: utils.SETTINGS
+        self.current_language = utils.SETTINGS.get("DEFAULT_LANG", "en") if utils.SETTINGS else "en" 
         gui_translations = _get_gui_localization_texts(self.current_language)
 
         if self.window:
@@ -406,7 +440,7 @@ class BotGUI:
         )
         self.window.events.closed += self._trigger_cleanup_on_window_closed
         
-        debug_mode = utils.SETTINGS.get("PYWEBVIEW_DEBUG", False) if utils.SETTINGS else False # MODIFIED: utils.SETTINGS
+        debug_mode = utils.SETTINGS.get("PYWEBVIEW_DEBUG", False) if utils.SETTINGS else False 
         logger.info(f"GUI: Starting pywebview main loop. Debug: {debug_mode}")
         webview.start(debug=debug_mode, private_mode=False) 
         
@@ -462,8 +496,7 @@ def main_gui_start():
 
     if settings_ok:
         app_gui.is_settings_loaded = True
-        # The problematic line, now using utils.SETTINGS
-        app_gui.current_language = utils.SETTINGS.get("DEFAULT_LANG", "en") # MODIFIED: utils.SETTINGS
+        app_gui.current_language = utils.SETTINGS.get("DEFAULT_LANG", "en") 
         logger.info(f"GUI: Settings loaded. Initial language: {app_gui.current_language}")
     else:
         app_gui.is_settings_loaded = False
@@ -471,7 +504,7 @@ def main_gui_start():
         logger.critical("GUI CRITICAL: Failed to load settings.json. GUI will reflect this.")
     
     if not questions_ok:
-        logger.warning("GUI WARNING: Failed to load questions.json. /apply command might be affected.")
+        logger.warning("GUI WARNING: Failed to load questions.json. /apply command might be affected, and editing questions might start with an empty list if the file is missing/corrupt.")
 
     app_gui.run()
 

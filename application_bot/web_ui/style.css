@@ -30,7 +30,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 15px; /* Adjusted gap */
     flex-shrink: 0;
     overflow-y: auto;
 }
@@ -48,7 +48,6 @@ body {
     height: 100px;        /* Set desired height */
     object-fit: contain;  /* Adjust as needed: contain, cover, fill, scale-down */
     margin-bottom: 10px;
-    /* border: 1px dashed #888; /* Dotted line removed */
 }
 
 
@@ -59,6 +58,7 @@ body {
     border-radius: 8px;
     text-align: center;
     width: 100%;
+    margin-bottom: 5px; /* Added margin */
 }
 
 .neumorphic-button {
@@ -154,6 +154,109 @@ input:checked + .toggle-slider:before {
     padding: 2px 0;
 }
 
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent backdrop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-content {
+    padding: 25px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 700px; /* Max width for the modal */
+    max-height: 90vh; /* Max height */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow: hidden; /* Let specific inner elements scroll */
+}
+
+.modal-content h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end; /* Default for bottom, override for top */
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.modal-actions.top-actions {
+    justify-content: flex-start; /* Align "Add Question" to the left */
+}
+
+.modal-button {
+    padding: 10px 18px;
+    font-size: 14px;
+    min-width: 100px; /* Ensure buttons have some width */
+    width: auto; /* Override panel-wide button width */
+}
+
+.questions-table-container {
+    flex-grow: 1; /* Allows table to take available space */
+    overflow-y: auto; /* Scroll for table if it's too long */
+    border: 1px solid; /* Set by theme */
+    border-radius: 8px;
+    min-height: 150px; /* Ensure it has some height even if empty */
+}
+
+#questions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#questions-table th, #questions-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid; /* Set by theme */
+    vertical-align: middle;
+}
+
+#questions-table th {
+    font-weight: 600;
+    position: sticky; /* Make headers sticky */
+    top: 0; /* Stick to top of container */
+    z-index: 10; /* Above table content */
+}
+
+#questions-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#questions-table input[type="text"].neumorphic-input { /* Apply neumorphic input style */
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+    text-align: left; /* Override default right align for table */
+}
+
+#questions-table .action-button {
+    padding: 5px 10px;
+    font-size: 13px;
+    margin-right: 5px;
+    min-width: auto;
+    width: auto; /* Specific for action buttons in table */
+}
+#questions-table .action-button:last-child {
+    margin-right: 0;
+}
+
+
 /* Light Mode */
 body {
     background-color: #e8e3d9;
@@ -219,6 +322,30 @@ input:checked + .toggle-slider:before { background: linear-gradient(145deg, #d9c
 .log-area::-webkit-scrollbar-thumb { background-color: #c5bdab; border-radius: 10px; }
 .log-area::-webkit-scrollbar-thumb:hover { background-color: #b9b1a0; }
 
+/* Light Mode Modal Specifics */
+.modal-content {
+    background-color: #f0f0f0; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    color: #444;
+}
+.modal-content h2 { color: #333; }
+.questions-table-container { border-color: #d1c9bd; }
+#questions-table th, #questions-table td { border-bottom-color: #d1c9bd; }
+#questions-table th { background-color: #e8e3d9; } 
+#questions-table input[type="text"].neumorphic-input { /* Already inherits neumorphic styles */
+    background-color: #fff; /* Override for table inputs */
+    border-color: #ccc;
+    color: #333;
+}
+#questions-table input[type="text"].neumorphic-input:focus { border-color: #ad9d7c; }
+.modal-button.primary {
+    background: linear-gradient(145deg, #adc3b2, #9cb3a2); /* Softer green */
+    color: #2e7d32;
+}
+.modal-button.primary:active:not(:disabled) {
+    box-shadow: inset 3px 3px 7px #8ca392, inset -3px -3px 7px #bcc3c2;
+}
+
 
 /* Dark Mode */
 body.dark-mode {
@@ -283,6 +410,28 @@ body.dark-mode {
 .dark-mode .log-area::-webkit-scrollbar-thumb:hover { background-color: #6a6a6a; }
 
 .dark-mode .logo-placeholder {
-    filter: invert(0.8); /* Removed or commented out this filter for actual logo */
-    /* border-color: #555; /* If border was kept, adjust its color for dark mode */
+    filter: invert(0.8);
+}
+
+/* Dark Mode Modal Specifics */
+.dark-mode .modal-content {
+    background-color: #4a4a4a; 
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    color: #e0e0e0;
+}
+.dark-mode .modal-content h2 { color: #f0f0f0; }
+.dark-mode .questions-table-container { border-color: #5f5f5f; }
+.dark-mode #questions-table th, .dark-mode #questions-table td { border-bottom-color: #5f5f5f; }
+.dark-mode #questions-table th { background-color: #424242; } 
+.dark-mode #questions-table input[type="text"].neumorphic-input {
+    background-color: #383838; /* Override for table inputs */
+    border-color: #666;
+    color: #e0e0e0;
+}
+.dark-mode #questions-table input[type="text"].neumorphic-input:focus { border-color: #888; }
+.dark-mode .modal-button.primary {
+    background: linear-gradient(145deg, #507a50, #406a40); /* Greenish for save */
+}
+.dark-mode .modal-button.primary:active:not(:disabled) {
+    box-shadow: inset 3px 3px 7px #305a30, inset -3px -3px 7px #609a60;
 }

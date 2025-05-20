@@ -13,24 +13,25 @@
             <div id="status-display" class="status-display">
                 <span id="gui_status_label_prefix">Status: </span><span id="status-message-content">Initializing...</span>
             </div>
-            <button id="start-button" class="neumorphic-button">Start Bot</button>
-            <button id="stop-button" class="neumorphic-button" disabled>Stop Bot</button>
-            <button id="open-applications-folder-button" class="neumorphic-button">Open Applications Folder</button>
+            <button id="start-button" class="neumorphic-button" data-i18n-key="gui_start_button">Start Bot</button>
+            <button id="stop-button" class="neumorphic-button" data-i18n-key="gui_stop_button" disabled>Stop Bot</button>
+            <button id="open-applications-folder-button" class="neumorphic-button" data-i18n-key="gui_open_folder_button">Open Applications Folder</button>
+            <button id="edit-questions-button" class="neumorphic-button" data-i18n-key="gui_edit_questions_button">Edit Questions</button> <!-- New Button -->
             
             <div class="settings-group">
                 <div class="settings-row">
-                    <label for="log-lines-input" id="gui_log_lines_label" class="settings-label">Log Lines:</label>
+                    <label for="log-lines-input" id="gui_log_lines_label" class="settings-label" data-i18n-key="gui_log_lines_label">Log Lines:</label>
                     <input type="number" id="log-lines-input" class="neumorphic-input" value="100" min="10" max="1000" step="10">
                 </div>
                 <div class="settings-row">
-                    <label for="dark-mode-toggle" id="gui_dark_theme_label" class="settings-label">Dark Theme</label>
+                    <label for="dark-mode-toggle" id="gui_dark_theme_label" class="settings-label" data-i18n-key="gui_dark_theme_label">Dark Theme</label>
                     <label class="toggle-switch">
                         <input type="checkbox" id="dark-mode-toggle" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
                 <div class="settings-row"> <!-- New Language Toggle -->
-                    <label for="lang-toggle" id="gui_lang_toggle_label" class="settings-label">System Language (En/Ru):</label>
+                    <label for="lang-toggle" id="gui_lang_toggle_label" class="settings-label" data-i18n-key="gui_lang_toggle_label">System Language (En/Ru):</label>
                     <label class="toggle-switch">
                         <input type="checkbox" id="lang-toggle"> <!-- Unchecked = EN (default), Checked = RU -->
                         <span class="toggle-slider"></span>
@@ -44,6 +45,35 @@
             </div>
         </div>
     </div>
+
+    <!-- Questions Editing Modal -->
+    <div id="questions-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 id="gui_modal_questions_title" data-i18n-key="gui_modal_questions_title">Edit Questions</h2>
+            <div class="modal-actions top-actions">
+                <button id="add-question-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_add_question_button">Add Question</button>
+            </div>
+            <div class="questions-table-container">
+                <table id="questions-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n-key="gui_modal_table_header_id">ID</th>
+                            <th data-i18n-key="gui_modal_table_header_text">Text</th>
+                            <th data-i18n-key="gui_modal_table_header_actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Question rows will be added here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-actions bottom-actions">
+                <button id="save-questions-button" class="neumorphic-button modal-button primary" data-i18n-key="gui_modal_save_button">Save Changes</button>
+                <button id="cancel-questions-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_cancel_button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
