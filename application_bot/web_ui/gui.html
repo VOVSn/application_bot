@@ -1,29 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> <!-- This lang attribute is for the HTML document, not app state -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Bot Control</title>
+    <title id="gui_title_text">Application Bot Control</title> <!-- ID for title -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-mode"> <!-- Default to dark -->
+<body class="dark-mode">
     <div class="app-container">
         <div class="left-panel">
             <img id="logo" src="logo_placeholder.png" alt="Logo" class="logo-placeholder">
-            <div id="status-display" class="status-display">Status: Initializing...</div>
+            <div id="status-display" class="status-display">
+                <span id="gui_status_label_prefix">Status: </span><span id="status-message-content">Initializing...</span>
+            </div>
             <button id="start-button" class="neumorphic-button">Start Bot</button>
             <button id="stop-button" class="neumorphic-button" disabled>Stop Bot</button>
-            <button id="open-applications-folder-button" class="neumorphic-button">Open Applications Folder</button> <!-- New Button -->
+            <button id="open-applications-folder-button" class="neumorphic-button">Open Applications Folder</button>
             
             <div class="settings-group">
                 <div class="settings-row">
-                    <label for="log-lines-input" class="settings-label">Log Lines:</label>
+                    <label for="log-lines-input" id="gui_log_lines_label" class="settings-label">Log Lines:</label>
                     <input type="number" id="log-lines-input" class="neumorphic-input" value="100" min="10" max="1000" step="10">
                 </div>
                 <div class="settings-row">
-                    <label for="dark-mode-toggle" class="settings-label">Dark Theme</label>
+                    <label for="dark-mode-toggle" id="gui_dark_theme_label" class="settings-label">Dark Theme</label>
                     <label class="toggle-switch">
                         <input type="checkbox" id="dark-mode-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row"> <!-- New Language Toggle -->
+                    <label for="lang-toggle" id="gui_lang_toggle_label" class="settings-label">System Language (En/Ru):</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="lang-toggle"> <!-- Unchecked = EN (default), Checked = RU -->
                         <span class="toggle-slider"></span>
                     </label>
                 </div>

@@ -220,7 +220,7 @@ input:checked + .toggle-slider:before { background: linear-gradient(145deg, #d9c
 .log-area::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
 .log-area::-webkit-scrollbar-thumb { background-color: #c5bdab; border-radius: 10px; }
 .log-area::-webkit-scrollbar-thumb:hover { background-color: #b9b1a0; }
-
+.status-display.intermediate { background-color: #fff59d; color: #795548; } /* Yellowish for intermediate */
 
 /* Dark Mode */
 body.dark-mode {
@@ -287,3 +287,4 @@ body.dark-mode {
     border-color: #555;
     filter: invert(0.8); /* Simple dark mode for placeholder */
 }
+.dark-mode .status-display.intermediate { background-color: #4a463a; color: #fff59d; } /* Darker Yellowish */

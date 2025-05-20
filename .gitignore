@@ -1,6 +1,5 @@
 __pycache__/
-settings.json
-applications/
+applications/*
 venv
 temp_photos/
 codebase/
