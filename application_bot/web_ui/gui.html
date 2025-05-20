@@ -1,32 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> <!-- This lang attribute is for the HTML document, not app state -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Bot Control</title>
+    <title id="gui_title_text">Application Bot Control</title> <!-- ID for title -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-mode"> <!-- Default to dark -->
+<body class="dark-mode"> <!-- Default to dark, JS will adjust from localStorage -->
     <div class="app-container">
         <div class="left-panel">
-            <img id="logo" src="logo_placeholder.png" alt="Logo" class="logo-placeholder">
-            <div id="status-display" class="status-display">Status: Initializing...</div>
-            <button id="start-button" class="neumorphic-button">Start Bot</button>
-            <button id="stop-button" class="neumorphic-button" disabled>Stop Bot</button>
-            <button id="open-applications-folder-button" class="neumorphic-button">Open Applications Folder</button> <!-- New Button -->
+            <img id="logo" src="logo.png" alt="Logo" class="logo-placeholder">
+            <div id="status-display" class="status-display">
+                <span id="gui_status_label_prefix">Status: </span><span id="status-message-content">Initializing...</span>
+            </div>
+            <button id="start-button" class="neumorphic-button" data-i18n-key="gui_start_button">Start Bot</button>
+            <button id="stop-button" class="neumorphic-button" data-i18n-key="gui_stop_button" disabled>Stop Bot</button>
+            <button id="open-applications-folder-button" class="neumorphic-button" data-i18n-key="gui_open_folder_button">Open Applications Folder</button>
+            <button id="edit-questions-button" class="neumorphic-button" data-i18n-key="gui_edit_questions_button">Edit Questions</button>
+            <button id="edit-settings-button" class="neumorphic-button" data-i18n-key="gui_settings_button">Settings</button>
             
-            <div class="settings-group">
-                <div class="settings-row">
-                    <label for="log-lines-input" class="settings-label">Log Lines:</label>
-                    <input type="number" id="log-lines-input" class="neumorphic-input" value="100" min="10" max="1000" step="10">
-                </div>
-                <div class="settings-row">
-                    <label for="dark-mode-toggle" class="settings-label">Dark Theme</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="dark-mode-toggle" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
+            <!-- Settings previously here (Log Lines, Dark Theme, Language) are now in the modal -->
+            <div class="settings-group-placeholder">
+                <!-- This div can be used for spacing or removed if not needed -->
             </div>
         </div>
         <div class="right-panel">
@@ -35,6 +30,170 @@
             </div>
         </div>
     </div>
+
+    <!-- Questions Editing Modal -->
+    <div id="questions-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 id="gui_modal_questions_title" data-i18n-key="gui_modal_questions_title">Edit Questions</h2>
+            <div class="modal-actions top-actions">
+                <button id="add-question-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_add_question_button">Add Question</button>
+            </div>
+            <div class="questions-table-container">
+                <table id="questions-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n-key="gui_modal_table_header_id">ID</th>
+                            <th data-i18n-key="gui_modal_table_header_text">Text</th>
+                            <th data-i18n-key="gui_modal_table_header_actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Question rows will be added here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-actions bottom-actions">
+                <button id="save-questions-button" class="neumorphic-button modal-button primary" data-i18n-key="gui_modal_save_button">Save Changes</button>
+                <button id="cancel-questions-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_cancel_button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content settings-modal-content">
+            <h2 data-i18n-key="gui_modal_settings_title">Settings</h2>
+            <div class="tab-container">
+                <button class="tab-button active" onclick="openSettingsTab(event, 'BasicSettingsTab')" data-i18n-key="gui_tab_basic_settings" id="basic-settings-tab-btn">Basic</button>
+                <button class="tab-button" onclick="openSettingsTab(event, 'PdfSettingsTab')" data-i18n-key="gui_tab_pdf_settings">PDF</button>
+                <button class="tab-button" onclick="openSettingsTab(event, 'AdminSettingsTab')" data-i18n-key="gui_tab_admin_settings">Admin</button>
+            </div>
+
+            <!-- Basic Settings Tab Content -->
+            <div id="BasicSettingsTab" class="tab-content active-tab">
+                <div class="settings-form-container">
+                    <div class="form-group modal-form-group">
+                        <label for="settings-modal-log-lines-input" data-i18n-key="gui_log_lines_label">Log Lines:</label>
+                        <input type="number" id="settings-modal-log-lines-input" class="neumorphic-input modal-input" value="100" min="10" max="1000" step="10">
+                    </div>
+                    <div class="form-group modal-form-group">
+                        <label for="settings-modal-dark-mode-toggle" data-i18n-key="gui_dark_theme_label">Dark Theme</label>
+                        <label class="toggle-switch settings-toggle">
+                            <input type="checkbox" id="settings-modal-dark-mode-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group modal-form-group">
+                        <label for="settings-modal-lang-toggle" data-i18n-key="gui_lang_toggle_label">System Language (En/Ru):</label>
+                        <label class="toggle-switch settings-toggle">
+                            <input type="checkbox" id="settings-modal-lang-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group modal-form-group">
+                        <label for="settings-override-user-lang-toggle" data-i18n-key="gui_override_user_lang_label">Override User Telegram Language</label>
+                        <label class="toggle-switch settings-toggle">
+                            <input type="checkbox" id="settings-override-user-lang-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Settings Tab Content -->
+            <div id="PdfSettingsTab" class="tab-content">
+                <div class="settings-form-container">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="pdf-font-file-path" data-i18n-key="gui_pdf_font_file_path">Font File Path:</label>
+                            <input type="text" id="pdf-font-file-path" class="neumorphic-input modal-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-font-name-registered" data-i18n-key="gui_pdf_font_name_registered">Registered Font Name:</label>
+                            <input type="text" id="pdf-font-name-registered" class="neumorphic-input modal-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-page-width-mm" data-i18n-key="gui_pdf_page_width_mm">Page Width (mm):</label>
+                            <input type="number" id="pdf-page-width-mm" class="neumorphic-input modal-input" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-page-height-mm" data-i18n-key="gui_pdf_page_height_mm">Page Height (mm):</label>
+                            <input type="number" id="pdf-page-height-mm" class="neumorphic-input modal-input" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-margin-mm" data-i18n-key="gui_pdf_margin_mm">Margin (mm):</label>
+                            <input type="number" id="pdf-margin-mm" class="neumorphic-input modal-input" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-photo-width-mm" data-i18n-key="gui_pdf_photo_width_mm">Photo Width (mm):</label>
+                            <input type="number" id="pdf-photo-width-mm" class="neumorphic-input modal-input" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-photo-position" data-i18n-key="gui_pdf_photo_position">Photo Position:</label>
+                            <select id="pdf-photo-position" class="neumorphic-input modal-input">
+                                <option value="top_right" data-i18n-key="gui_pdf_photo_pos_top_right">Top Right</option>
+                                <option value="center" data-i18n-key="gui_pdf_photo_pos_center">Center</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-title-font-size" data-i18n-key="gui_pdf_title_font_size">Title Font Size:</label>
+                            <input type="number" id="pdf-title-font-size" class="neumorphic-input modal-input" step="1">
+                        </div>
+                         <div class="form-group">
+                            <label for="pdf-header-font-size" data-i18n-key="gui_pdf_header_font_size">Header Font Size:</label>
+                            <input type="number" id="pdf-header-font-size" class="neumorphic-input modal-input" step="1">
+                        </div>
+                         <div class="form-group">
+                            <label for="pdf-question-font-size" data-i18n-key="gui_pdf_question_font_size">Question Font Size:</label>
+                            <input type="number" id="pdf-question-font-size" class="neumorphic-input modal-input" step="1">
+                        </div>
+                         <div class="form-group">
+                            <label for="pdf-answer-font-size" data-i18n-key="gui_pdf_answer_font_size">Answer Font Size:</label>
+                            <input type="number" id="pdf-answer-font-size" class="neumorphic-input modal-input" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf-app-photo-numb" data-i18n-key="gui_app_photo_numb_label">Number of Photos for App:</label>
+                            <input type="number" id="pdf-app-photo-numb" class="neumorphic-input modal-input" step="1" min="0">
+                        </div>
+                        <div class="form-group full-width-checkbox pdf-specific-toggle-group">
+                            <label for="pdf-question-bold" data-i18n-key="gui_pdf_question_bold">Question Text Bold:</label>
+                            <label class="toggle-switch pdf-setting-toggle">
+                                <input type="checkbox" id="pdf-question-bold">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                         <div class="form-group full-width-checkbox pdf-specific-toggle-group">
+                            <label for="pdf-send-to-admins" data-i18n-key="gui_send_pdf_to_admins_label">Send PDF to Admins:</label>
+                            <label class="toggle-switch pdf-setting-toggle">
+                                <input type="checkbox" id="pdf-send-to-admins">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Administration Tab Content -->
+            <div id="AdminSettingsTab" class="tab-content">
+                 <div class="settings-form-container">
+                    <div class="form-group"> <!-- Changed from modal-form-group to form-group for consistency -->
+                        <label for="admin-bot-token" data-i18n-key="gui_bot_token_label">Bot Token:</label>
+                        <input type="password" id="admin-bot-token" class="neumorphic-input modal-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-user-ids" data-i18n-key="gui_admin_ids_label">Admin User IDs (comma-separated):</label>
+                        <input type="text" id="admin-user-ids" class="neumorphic-input modal-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions bottom-actions">
+                <button id="save-all-settings-button" class="neumorphic-button modal-button primary" data-i18n-key="gui_modal_save_button">Save Changes</button>
+                <button id="cancel-all-settings-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_cancel_button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

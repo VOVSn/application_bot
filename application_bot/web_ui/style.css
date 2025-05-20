@@ -30,7 +30,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 15px; /* Adjusted gap */
     flex-shrink: 0;
     overflow-y: auto;
 }
@@ -44,14 +44,10 @@ body {
 }
 
 .logo-placeholder {
-    width: 150px; /* Adjust as needed */
-    height: auto; /* Maintain aspect ratio */
+    width: 200px;         /* Set desired width */
+    height: 100px;        /* Set desired height */
+    object-fit: contain;  /* Adjust as needed: contain, cover, fill, scale-down */
     margin-bottom: 10px;
-    /* Basic styling, can be enhanced */
-    border: 1px dashed #888; /* Placeholder visual */
-    padding: 10px;
-    text-align: center;
-    font-size: 10px;
 }
 
 
@@ -62,6 +58,7 @@ body {
     border-radius: 8px;
     text-align: center;
     width: 100%;
+    margin-bottom: 5px; /* Added margin */
 }
 
 .neumorphic-button {
@@ -80,46 +77,42 @@ body {
     cursor: not-allowed;
 }
 
-.settings-group {
+/* Placeholder for where old settings group was, can be removed or styled for spacing */
+.settings-group-placeholder {
     width: 100%;
     margin-top: auto; /* Pushes to the bottom */
     padding-top: 20px; /* Space above settings */
-    border-top: 1px solid; /* Separator, color set by theme */
+    /* border-top: 1px solid; */ /* Removed separator as controls are gone */
+    min-height: 50px; /* Example height for spacing */
 }
 
 
-.settings-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: 15px;
-}
-.settings-row:last-child {
-    margin-bottom: 0;
-}
-
-
-.settings-label {
+.settings-label { /* General label style, might be used in modals */
     font-size: 14px;
     font-weight: 500;
 }
 
-.neumorphic-input {
+.neumorphic-input.modal-input { /* Style for inputs specifically within modals */
     padding: 8px 10px;
     border-radius: 8px;
     border: 1px solid; /* Set by theme */
     font-size: 14px;
-    width: 80px; /* Adjust as needed */
+    width: 100%; /* Inputs in modals often span width */
+    text-align: left; /* Override general right align if any */
+}
+/* For number inputs that should remain smaller in modals */
+#settings-modal-log-lines-input {
+    width: 80px;
     text-align: right;
 }
 
 
-/* Toggle Switch (from design_template.html, adapted) */
+/* Toggle Switch (general, can be used in modal) */
 .toggle-switch {
     position: relative;
     width: 50px;
     height: 26px;
+    flex-shrink: 0; /* Prevent switch from shrinking if label is long */
 }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .toggle-slider {
@@ -157,124 +150,233 @@ input:checked + .toggle-slider:before {
     padding: 2px 0;
 }
 
-/* Light Mode */
-body {
-    background-color: #e8e3d9;
-    color: #5a5346;
+/* Modal Styles (General) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
 }
-.left-panel, .right-panel {
-    background-color: #e8e3d9; /* Match body or slightly different for depth */
+
+.modal-content { /* Base style for all modals */
+    padding: 25px;
+    border-radius: 15px;
+    width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow: hidden; /* Parent controls scroll for children like table/form */
 }
-.settings-group { border-top-color: #d1c9bd; }
+.modal-content.settings-modal-content { /* Specific for the wider settings modal */
+    max-width: 800px; 
+}
+.modal-content:not(.settings-modal-content) { /* For questions modal */
+    max-width: 700px;
+}
 
-.status-display { background-color: #dcd7cd; color: #5a5346; }
-.status-display.running { background-color: #c8e6c9; color: #2e7d32; } /* Greenish */
-.status-display.stopped { background-color: #ffcdd2; color: #c62828; } /* Reddish */
-.status-display.error { background-color: #ffcc80; color: #ef6c00; } /* Orangish */
+
+.modal-content h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+    padding-top: 10px; /* Space above buttons */
+}
+.modal-actions.top-actions { justify-content: flex-start; padding-top: 0; }
+
+.modal-button {
+    padding: 10px 18px;
+    font-size: 14px;
+    min-width: 100px;
+    width: auto;
+}
+
+/* Questions Modal Table */
+.questions-table-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    border: 1px solid; /* Theme color */
+    border-radius: 8px;
+    min-height: 150px;
+}
+#questions-table { width: 100%; border-collapse: collapse; }
+#questions-table th, #questions-table td {
+    padding: 10px; text-align: left;
+    border-bottom: 1px solid; /* Theme color */
+    vertical-align: middle;
+}
+#questions-table th {
+    font-weight: 600; position: sticky; top: 0; z-index: 10;
+    /* Background color for sticky header set by theme */
+}
+#questions-table tbody tr:last-child td { border-bottom: none; }
+#questions-table input[type="text"].modal-input { width: 100%; } /* Ensure full width in table cell */
+#questions-table .action-button { padding: 5px 10px; font-size: 13px; margin-right: 5px; min-width: auto; }
+#questions-table .action-button:last-child { margin-right: 0; }
 
 
-.neumorphic-button {
+/* Settings Modal Tabs and Forms */
+.tab-container {
+    display: flex;
+    border-bottom: 1px solid; /* Theme color */
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+.tab-button {
+    padding: 10px 15px; cursor: pointer; border: none;
+    background-color: transparent; font-size: 16px; font-weight: 500;
+    transition: color 0.2s, border-bottom 0.2s;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px; /* Align with container border */
+    outline: none; /* Remove focus outline for cleaner look */
+}
+.tab-content {
+    display: none; /* Hidden by default, JS makes active */
+    flex-grow: 1;
+    overflow-y: auto; /* Scroll content within tab if needed */
+    /* max-height: calc(90vh - 220px); Approx calculation, adjust as needed */
+    padding: 5px 10px 5px 5px; /* Padding for the content area, more on right for scrollbar */
+}
+.tab-content.active-tab { display: block; }
+
+.settings-form-container { /* Container for form groups within a tab */
+    display: flex;
+    flex-direction: column;
+    gap: 18px; /* Gap between form groups */
+}
+
+/* Form groups in Settings Modal */
+.modal-form-group { /* For Basic Settings tab: label on left, control on right */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.modal-form-group label:first-child { /* The text label part */
+    flex-grow: 1; /* Allow label to take available space */
+    margin-right: 10px;
+}
+.modal-form-group .neumorphic-input.modal-input,
+.modal-form-group .settings-toggle { /* Control part (input or toggle switch) */
+    flex-shrink: 0; /* Prevent control from shrinking */
+}
+
+/* Form groups for PDF and Admin tabs (label above input) */
+#PdfSettingsTab .form-group,
+#AdminSettingsTab .form-group {
+    display: flex;
+    flex-direction: column; /* Label on top of input */
+    gap: 5px;
+}
+#PdfSettingsTab .form-group .neumorphic-input.modal-input,
+#AdminSettingsTab .form-group .neumorphic-input.modal-input {
+    width: 100%; /* Inputs take full width */
+}
+#PdfSettingsTab .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 18px; /* Gap between grid items */
+}
+#PdfSettingsTab .form-group.full-width-checkbox { /* For toggles in PDF grid */
+    grid-column: 1 / -1; /* Span full width */
+    flex-direction: row; /* Label and toggle side-by-side */
+    align-items: center;
+    justify-content: space-between;
+}
+.pdf-specific-toggle-group label:first-child { flex-grow: 1; margin-right: 10px; }
+.pdf-specific-toggle-group .toggle-switch { flex-shrink: 0; }
+.settings-toggle { transform: scale(0.9); } /* Slightly smaller toggles in modal */
+.pdf-setting-toggle { transform: scale(0.9); }
+
+
+/* Light Mode Specifics */
+body.light-mode { background-color: #e8e3d9; color: #5a5346; }
+.light-mode .left-panel, .light-mode .right-panel { background-color: #e8e3d9; }
+.light-mode .settings-group-placeholder { border-top-color: #d1c9bd; }
+.light-mode .status-display { background-color: #dcd7cd; color: #5a5346; }
+.light-mode .status-display.running { background-color: #c8e6c9; color: #2e7d32; }
+.light-mode .status-display.stopped { background-color: #ffcdd2; color: #c62828; }
+.light-mode .status-display.error { background-color: #ffcc80; color: #ef6c00; }
+.light-mode .status-display.intermediate { background-color: #fff59d; color: #795548; }
+.light-mode .neumorphic-button {
     background: linear-gradient(145deg, #f0ebe1, #d4d0c7);
     box-shadow: 5px 5px 10px #c4c0b7, -5px -5px 10px #ffffff;
     color: #5a5346;
 }
-.neumorphic-button:active:not(:disabled) {
-    box-shadow: inset 3px 3px 7px #c4c0b7, inset -3px -3px 7px #ffffff;
+.light-mode .neumorphic-button:active:not(:disabled) { box-shadow: inset 3px 3px 7px #c4c0b7, inset -3px -3px 7px #ffffff; }
+.light-mode .neumorphic-button:disabled { background: #dcd7cd; box-shadow: none; color: #a09a8f; }
+.light-mode .neumorphic-input.modal-input { /* Inputs in Modal */
+    background: #fff; /* Brighter background for modal inputs */
+    border: 1px solid #ccc;
+    box-shadow: inset 1px 1px 3px #ddd, inset -1px -1px 3px #fff;
+    color: #333;
 }
-.neumorphic-button:disabled {
-    background: #dcd7cd;
-    box-shadow: none;
-    color: #a09a8f;
-}
-
-
-.neumorphic-input {
-    background: #e8e3d9;
-    border: 1px solid #d1c9bd;
-    box-shadow: inset 2px 2px 5px #c4c0b7, inset -2px -2px 5px #ffffff;
-    color: #5a5346;
-}
-.neumorphic-input:focus {
-    outline: none;
-    border-color: #ad9d7c;
-}
-
-.toggle-slider {
-    background: #dcd7cd;
-    box-shadow: inset 1px 1px 3px #cbc6bd, inset -1px -1px 3px #f5f0e5;
-}
-.toggle-slider:before {
-    background: linear-gradient(145deg, #f0ebe1, #e0dbd1);
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.08);
-}
-input:checked + .toggle-slider { background: linear-gradient(145deg, #d5ccb8, #c6bdaa); }
-input:checked + .toggle-slider:before { background: linear-gradient(145deg, #d9cebc, #c8beac); }
-
-
-.log-area {
+.light-mode .neumorphic-input.modal-input:focus { border-color: #ad9d7c; outline: none; }
+.light-mode .toggle-slider { background: #dcd7cd; box-shadow: inset 1px 1px 3px #cbc6bd, inset -1px -1px 3px #f5f0e5; }
+.light-mode .toggle-slider:before { background: linear-gradient(145deg, #f0ebe1, #e0dbd1); box-shadow: 1px 1px 3px rgba(0,0,0,0.08); }
+.light-mode input:checked + .toggle-slider { background: linear-gradient(145deg, #d5ccb8, #c6bdaa); }
+.light-mode input:checked + .toggle-slider:before { background: linear-gradient(145deg, #d9cebc, #c8beac); }
+.light-mode .log-area {
     background: linear-gradient(125deg, #e6e1d7, #dbd6cc);
     box-shadow: inset 4px 4px 11px #cbc6bd, inset -4px -4px 11px #f5f0e5;
     color: #4a4336;
 }
-.log-area::-webkit-scrollbar { width: 8px; }
-.log-area::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
-.log-area::-webkit-scrollbar-thumb { background-color: #c5bdab; border-radius: 10px; }
-.log-area::-webkit-scrollbar-thumb:hover { background-color: #b9b1a0; }
+.light-mode .log-area::-webkit-scrollbar-thumb { background-color: #c5bdab; }
+.light-mode .log-area::-webkit-scrollbar-thumb:hover { background-color: #b9b1a0; }
+.light-mode .modal-content { background-color: #f0f0f0; box-shadow: 0 5px 20px rgba(0,0,0,0.15); color: #444; }
+.light-mode .modal-content h2 { color: #333; }
+.light-mode .questions-table-container { border-color: #d1c9bd; }
+.light-mode #questions-table th, .light-mode #questions-table td { border-bottom-color: #d1c9bd; }
+.light-mode #questions-table th { background-color: #e8e3d9; }
+.light-mode .modal-button.primary { background: linear-gradient(145deg, #adc3b2, #9cb3a2); color: #2e7d32; }
+.light-mode .modal-button.primary:active:not(:disabled) { box-shadow: inset 3px 3px 7px #8ca392, inset -3px -3px 7px #bcc3c2; }
+.light-mode .tab-container { border-bottom-color: #d1c9bd; }
+.light-mode .tab-button { color: #777; }
+.light-mode .tab-button.active { color: #333; border-bottom-color: #4a80d3; }
 
 
-/* Dark Mode */
-body.dark-mode {
-    background-color: #3a3a3a; /* Darker background */
-    color: #d1d1d1;
-}
-.dark-mode .left-panel, .dark-mode .right-panel {
-    background-color: #3a3a3a;
-}
-.dark-mode .settings-group { border-top-color: #4f4f4f; }
-
+/* Dark Mode Specifics */
+body.dark-mode { background-color: #3a3a3a; color: #d1d1d1; }
+.dark-mode .left-panel, .dark-mode .right-panel { background-color: #3a3a3a; }
+.dark-mode .settings-group-placeholder { border-top-color: #4f4f4f; }
 .dark-mode .status-display { background-color: #454545; color: #d1d1d1; }
 .dark-mode .status-display.running { background-color: #38593a; color: #a5d6a7; }
 .dark-mode .status-display.stopped { background-color: #733438; color: #ef9a9a; }
 .dark-mode .status-display.error { background-color: #78502a; color: #ffcc80; }
-
-
+.dark-mode .status-display.intermediate { background-color: #4a463a; color: #fff59d; }
 .dark-mode .neumorphic-button {
     background: linear-gradient(145deg, #4f4f4f, #3e3e3e);
     box-shadow: 5px 5px 10px #2a2a2a, -5px -5px 10px #505050;
     color: #d1d1d1;
 }
-.dark-mode .neumorphic-button:active:not(:disabled) {
-    box-shadow: inset 3px 3px 7px #2a2a2a, inset -3px -3px 7px #505050;
+.dark-mode .neumorphic-button:active:not(:disabled) { box-shadow: inset 3px 3px 7px #2a2a2a, inset -3px -3px 7px #505050; }
+.dark-mode .neumorphic-button:disabled { background: #454545; box-shadow: none; color: #7a7a7a; }
+.dark-mode .neumorphic-input.modal-input { /* Inputs in Modal */
+    background: #383838;
+    border: 1px solid #5f5f5f;
+    box-shadow: inset 1px 1px 3px #2e2e2e, inset -1px -1px 3px #424242;
+    color: #e0e0e0;
 }
-.dark-mode .neumorphic-button:disabled {
-    background: #454545;
-    box-shadow: none;
-    color: #7a7a7a;
-}
-
-
-.dark-mode .neumorphic-input {
-    background: #3a3a3a;
-    border: 1px solid #4f4f4f;
-    box-shadow: inset 2px 2px 5px #2a2a2a, inset -2px -2px 5px #505050;
-    color: #d1d1d1;
-}
-.dark-mode .neumorphic-input:focus {
-    border-color: #707070;
-}
-
-.dark-mode .toggle-slider {
-    background: #2f2f2f; /* Darker base for toggle */
-    box-shadow: inset 1px 1px 3px #252525, inset -1px -1px 3px #393939;
-}
-.dark-mode .toggle-slider:before {
-    background: linear-gradient(145deg, #525252, #484848);
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
-}
-.dark-mode input:checked + .toggle-slider { background: linear-gradient(145deg, #507a50, #406a40); } /* Greenish when checked */
+.dark-mode .neumorphic-input.modal-input:focus { border-color: #888; outline: none; }
+.dark-mode .toggle-slider { background: #2f2f2f; box-shadow: inset 1px 1px 3px #252525, inset -1px -1px 3px #393939; }
+.dark-mode .toggle-slider:before { background: linear-gradient(145deg, #525252, #484848); box-shadow: 1px 1px 3px rgba(0,0,0,0.25); }
+.dark-mode input:checked + .toggle-slider { background: linear-gradient(145deg, #507a50, #406a40); }
 .dark-mode input:checked + .toggle-slider:before { background: linear-gradient(145deg, #608a60, #507a50); }
-
-
 .dark-mode .log-area {
     background: linear-gradient(125deg, #3f3f3f, #353535);
     box-shadow: inset 4px 4px 11px #2a2a2a, inset -4px -4px 11px #4a4a4a;
@@ -282,8 +384,31 @@ body.dark-mode {
 }
 .dark-mode .log-area::-webkit-scrollbar-thumb { background-color: #5a5a5a; }
 .dark-mode .log-area::-webkit-scrollbar-thumb:hover { background-color: #6a6a6a; }
+.dark-mode .logo-placeholder { filter: invert(0.8); }
+.dark-mode .modal-content { background-color: #4a4a4a; box-shadow: 0 5px 25px rgba(0,0,0,0.3); color: #e0e0e0; }
+.dark-mode .modal-content h2 { color: #f0f0f0; }
+.dark-mode .questions-table-container { border-color: #5f5f5f; }
+.dark-mode #questions-table th, .dark-mode #questions-table td { border-bottom-color: #5f5f5f; }
+.dark-mode #questions-table th { background-color: #424242; }
+.dark-mode .modal-button.primary { background: linear-gradient(145deg, #507a50, #406a40); color: #e0e0e0;}
+.dark-mode .modal-button.primary:active:not(:disabled) { box-shadow: inset 3px 3px 7px #305a30, inset -3px -3px 7px #609a60; }
+.dark-mode .tab-container { border-bottom-color: #5f5f5f; }
+.dark-mode .tab-button { color: #aaa; }
+.dark-mode .tab-button.active { color: #e0e0e0; border-bottom-color: #6c9ced; }
 
-.dark-mode .logo-placeholder {
-    border-color: #555;
-    filter: invert(0.8); /* Simple dark mode for placeholder */
-}
+/* Scrollbar styling for modal content areas */
+.questions-table-container::-webkit-scrollbar,
+.tab-content::-webkit-scrollbar { width: 8px; }
+
+.questions-table-container::-webkit-scrollbar-track,
+.tab-content::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
+
+.light-mode .questions-table-container::-webkit-scrollbar-thumb,
+.light-mode .tab-content::-webkit-scrollbar-thumb { background-color: #c5bdab; border-radius: 10px; }
+.light-mode .questions-table-container::-webkit-scrollbar-thumb:hover,
+.light-mode .tab-content::-webkit-scrollbar-thumb:hover { background-color: #b9b1a0; }
+
+.dark-mode .questions-table-container::-webkit-scrollbar-thumb,
+.dark-mode .tab-content::-webkit-scrollbar-thumb { background-color: #5a5a5a; border-radius: 10px; }
+.dark-mode .questions-table-container::-webkit-scrollbar-thumb:hover,
+.dark-mode .tab-content::-webkit-scrollbar-thumb:hover { background-color: #6a6a6a; }
