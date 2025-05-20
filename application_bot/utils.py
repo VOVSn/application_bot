@@ -52,22 +52,17 @@ def get_external_file_path(relative_path_from_app_root: str) -> str:
     For bundled apps, this resolves to a path within the app's directory (e.g. dist/AppName/applications).
     For development, this resolves from the application_bot directory.
     """
-    # This function is similar to get_data_file_path but used for directories/files defined *inside* settings.json
-    # If these are truly internal resources like fonts, they should be accessed via get_internal_data_path('fonts/font.ttf')
-    # If they are output directories like 'applications', then get_app_root_dir() is correct.
-    # The current usage (e.g. FONT_FILE_PATH) is for a file that is part of the bundle's internal structure.
-    # Let's clarify for FONT_FILE_PATH:
-    if relative_path_from_app_root.startswith("fonts/"): # Assuming fonts are always internal
+    if relative_path_from_app_root.startswith("fonts/"):
         return get_internal_data_path(relative_path_from_app_root)
     
-    # For output folders like 'applications' or 'temp_photos'
     return os.path.join(get_app_root_dir(), relative_path_from_app_root)
 
 
 def load_json_file(file_path: str, file_description: str) -> Optional[Any]:
     """Loads a JSON file and handles errors."""
+    logger.debug(f"Attempting to load {file_description} from: {file_path}")
     if not os.path.exists(file_path):
-        logger.warning(f"{file_description} file not found at {file_path}. This might be normal if it's the first run.")
+        logger.warning(f"{file_description} file not found at {file_path}.")
         return None
         
     try:
@@ -75,70 +70,76 @@ def load_json_file(file_path: str, file_description: str) -> Optional[Any]:
             content = f.read()
             if not content.strip():
                 logger.warning(f"{file_description} file at {file_path} is empty.")
-                if file_description.lower() == "questions": return []
-                elif file_description.lower() == "languages": return {}
-                return None
+                if file_description.lower().startswith("questions"): return []
+                elif file_description.lower().startswith("languages"): return {}
+                return None # For settings, None if empty
             return json.loads(content)
-    except FileNotFoundError:
-        logger.critical(f"CRITICAL: {file_description} file not found at {file_path}")
+    except FileNotFoundError: # Should be caught by os.path.exists, but good practice
+        logger.error(f"{file_description} file not found at {file_path} (FileNotFoundError).")
     except json.JSONDecodeError as e:
-        logger.critical(f"CRITICAL: Error decoding {file_description} file at {file_path}: {e}")
+        logger.error(f"Error decoding {file_description} file at {file_path}: {e}")
     except Exception as e:
-        logger.critical(f"CRITICAL: An unexpected error occurred while loading {file_description} at {file_path}: {e}")
+        logger.error(f"An unexpected error occurred while loading {file_description} at {file_path}: {e}")
     return None
 
-def save_settings(settings_data: Dict[str, Any], path: str = "settings.json") -> bool:
-    """Saves the settings dictionary to an EXTERNAL JSON file."""
-    settings_path = get_data_file_path(path) # External path
+def save_json_file(data: Any, file_path: str, file_description: str, indent: int = 4) -> bool:
+    """Saves data to a JSON file."""
     try:
-        settings_data_to_save = {k: v for k, v in settings_data.items() if k != "LANGUAGES"}
-        with open(settings_path, 'w', encoding='utf-8') as f:
-            json.dump(settings_data_to_save, f, ensure_ascii=False, indent=4)
-        logger.info(f"Settings successfully saved to {settings_path}")
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=indent)
+        logger.info(f"{file_description} successfully saved to {file_path}")
         return True
     except Exception as e:
-        logger.error(f"Error saving settings to {settings_path}: {e}")
+        logger.error(f"Error saving {file_description} to {file_path}: {e}")
     return False
 
-def load_settings(path: str = "settings.json") -> bool:
-    global SETTINGS
-    settings_path = get_data_file_path(path) # External path
-    loaded_content = load_json_file(settings_path, "Settings")
 
-    if loaded_content is None:
-        SETTINGS = {
-            "BOT_TOKEN": "", "ADMIN_USER_IDS": "", "DEFAULT_LANG": "en",
-            "OVERRIDE_USER_LANG": True, "SEND_PDF_TO_ADMINS": True,
-            "APPLICATION_PHOTO_NUMB": 1, "PDF_SETTINGS": {},
-            "QUESTIONS_FILE": "questions.json", "LANGUAGES_FILE": "languages.json",
-            "APPLICATION_FOLDER": "applications", "TEMP_PHOTO_FOLDER": "temp_photos",
-            "FONT_FILE_PATH": "fonts/DejaVuSans.ttf" # This path will be resolved by get_external_file_path
-        }
-        logger.warning(f"Settings file {settings_path} not found or invalid. Loaded minimal default settings.")
-        file_existed_and_valid = False
-    else:
+def save_settings(settings_data: Dict[str, Any], filename: str = "settings.json") -> bool:
+    """Saves the settings dictionary to an EXTERNAL JSON file."""
+    settings_path = get_data_file_path(filename) 
+    settings_data_to_save = {k: v for k, v in settings_data.items() if k != "LANGUAGES"} # LANGUAGES is not part of settings.json
+    return save_json_file(settings_data_to_save, settings_path, "Settings")
+
+def load_settings(filename: str = "settings.json") -> bool:
+    global SETTINGS 
+    
+    external_settings_path = get_data_file_path(filename)
+    loaded_content = load_json_file(external_settings_path, f"External Settings ({filename})")
+    file_existed_and_valid_externally = loaded_content is not None
+
+    if not file_existed_and_valid_externally and getattr(sys, 'frozen', False):
+        logger.info(f"External settings not found or invalid at '{external_settings_path}'. "
+                    f"Attempting to load bundled default settings.")
+        internal_settings_path = get_internal_data_path(filename)
+        bundled_content = load_json_file(internal_settings_path, f"Bundled Default Settings ({filename})")
+        if bundled_content is not None:
+            logger.info(f"Successfully loaded bundled default settings from '{internal_settings_path}'. "
+                        f"These will be used and saved to '{external_settings_path}'.")
+            SETTINGS = bundled_content
+            # Ensure defaults are applied even to bundled version
+            _ensure_default_settings_keys()
+            # Save the loaded bundled settings to the external path to bootstrap it
+            if not save_settings(SETTINGS, filename): 
+                logger.error(f"Failed to bootstrap external settings file at '{external_settings_path}' from bundled defaults.")
+            # Successfully loaded settings, either external or bootstrapped internal
+            file_existed_and_valid_externally = True 
+        else:
+            logger.warning(f"Bundled default settings also not found or invalid at '{internal_settings_path}'. "
+                           f"Using minimal hardcoded defaults.")
+            SETTINGS = {} 
+            file_existed_and_valid_externally = False 
+    elif file_existed_and_valid_externally:
         SETTINGS = loaded_content
-        file_existed_and_valid = True
+    else: 
+        SETTINGS = {} 
+        file_existed_and_valid_externally = False
 
-    # Ensure defaults for crucial keys
-    SETTINGS.setdefault("OVERRIDE_USER_LANG", True)
-    SETTINGS.setdefault("SEND_PDF_TO_ADMINS", True)
-    SETTINGS.setdefault("APPLICATION_PHOTO_NUMB", 1)
-    SETTINGS.setdefault("DEFAULT_LANG", "en")
-    SETTINGS.setdefault("PDF_SETTINGS", {})
-    SETTINGS.setdefault("QUESTIONS_FILE", "questions.json")
-    SETTINGS.setdefault("LANGUAGES_FILE", "languages.json")
-    SETTINGS.setdefault("APPLICATION_FOLDER", "applications")
-    SETTINGS.setdefault("TEMP_PHOTO_FOLDER", "temp_photos")
-    SETTINGS.setdefault("FONT_FILE_PATH", "fonts/DejaVuSans.ttf")
+    _ensure_default_settings_keys() 
 
-
-    # Ensure output directories exist
     for folder_key in ["APPLICATION_FOLDER", "TEMP_PHOTO_FOLDER"]:
         folder_name = SETTINGS.get(folder_key)
         if folder_name:
             try:
-                # These are external output folders, so use get_external_file_path which resolves to app root
                 full_folder_path = get_external_file_path(folder_name)
                 os.makedirs(full_folder_path, exist_ok=True)
                 logger.info(f"Ensured output directory exists: {full_folder_path}")
@@ -147,25 +148,57 @@ def load_settings(path: str = "settings.json") -> bool:
         else:
             logger.warning(f"Configuration for output folder '{folder_key}' is missing in settings.json.")
     
-    return file_existed_and_valid
+    return file_existed_and_valid_externally
+
+
+def _ensure_default_settings_keys():
+    """Helper to apply default values to the global SETTINGS dictionary."""
+    global SETTINGS # <-- THIS IS THE FIX
+    if SETTINGS is None: 
+        SETTINGS = {}    
+        logger.error("_ensure_default_settings_keys called with SETTINGS as None. Initializing to {}.")
+
+    default_values = {
+        "BOT_TOKEN": "", "ADMIN_USER_IDS": "", "DEFAULT_LANG": "en",
+        "OVERRIDE_USER_LANG": True, "SEND_PDF_TO_ADMINS": True,
+        "APPLICATION_PHOTO_NUMB": 1, "PDF_SETTINGS": {},
+        "QUESTIONS_FILE": "questions.json", "LANGUAGES_FILE": "languages.json",
+        "APPLICATION_FOLDER": "applications", "TEMP_PHOTO_FOLDER": "temp_photos",
+        "FONT_FILE_PATH": "fonts/DejaVuSans.ttf",
+        "RATE_LIMIT_SECONDS": 600, "CONVERSATION_TIMEOUT_SECONDS": 1200,
+        "MAX_ALLOWED_FILE_SIZE_MB": 10, "HTTP_CONNECT_TIMEOUT": 10.0,
+        "HTTP_READ_TIMEOUT": 30.0, "HTTP_WRITE_TIMEOUT": 30.0, "HTTP_POOL_TIMEOUT": 15.0,
+        "PYWEBVIEW_DEBUG": False
+    }
+    for key, value in default_values.items():
+        SETTINGS.setdefault(key, value)
+    
+    if "PDF_SETTINGS" not in SETTINGS or not isinstance(SETTINGS["PDF_SETTINGS"], dict):
+        SETTINGS["PDF_SETTINGS"] = {} 
+        
+    default_pdf_settings = {
+        "page_width_mm": 210.0, "page_height_mm": 297.0, "margin_mm": 15.0,
+        "photo_position": "top_right", "photo_width_mm": 80.0,
+        "font_name_registered": "CustomUnicodeFont", "title_font_size": 16,
+        "header_font_size": 10, "question_font_size": 12,
+        "question_bold": True, "answer_font_size": 10
+    }
+    for key, value in default_pdf_settings.items():
+        SETTINGS["PDF_SETTINGS"].setdefault(key, value)
 
 
 def load_languages() -> bool:
     global LANGUAGES_CACHE, SETTINGS
     if not SETTINGS:
         logger.warning("load_languages called before settings loaded. Attempting to load settings.")
-        load_settings()
-        if not SETTINGS:
-             logger.error("Settings unavailable, cannot determine languages file. Using minimal languages.")
-             LANGUAGES_CACHE = {"en": {"gui_title": "[EN] App Bot (L_FAIL)"}, "ru": {"gui_title": "[RU] Бот Заявок (L_FAIL)"}}
+        if not load_settings(): 
+             logger.error("Settings unavailable after attempt, cannot determine languages file. Using minimal languages.")
+             LANGUAGES_CACHE = {"en": {"gui_title": "[EN] App Bot (L_FAIL_S_FAIL)"}, "ru": {"gui_title": "[RU] Бот Заявок (L_FAIL_S_FAIL)"}}
              return False
-
+    
     lang_file_name_from_settings = SETTINGS.get("LANGUAGES_FILE", "languages.json")
+    languages_path = get_internal_data_path(lang_file_name_from_settings) 
     
-    # Use get_internal_data_path for languages.json as it's a bundled resource
-    languages_path = get_internal_data_path(lang_file_name_from_settings)
-    
-    logger.info(f"Attempting to load languages from internal path: {languages_path}")
     loaded_data = load_json_file(languages_path, "Languages")
 
     default_min_langs = {
@@ -173,12 +206,8 @@ def load_languages() -> bool:
         "ru": {"gui_title": "[RU Minimal] Бот Заявок"}
     }
 
-    if loaded_data is None:
-        logger.warning(f"Languages file '{languages_path}' not found or error. Using minimal default languages.")
-        LANGUAGES_CACHE = default_min_langs
-        return False
-    elif not isinstance(loaded_data, dict) or not loaded_data:
-        logger.error(f"Languages file '{languages_path}' is not a valid non-empty dictionary. Using minimal languages.")
+    if loaded_data is None or not isinstance(loaded_data, dict) or not loaded_data:
+        logger.warning(f"Languages file '{languages_path}' not found, error, or invalid. Using minimal default languages.")
         LANGUAGES_CACHE = default_min_langs
         return False
     
@@ -202,107 +231,126 @@ def load_languages() -> bool:
 def load_questions() -> bool:
     global QUESTIONS, SETTINGS
     if not SETTINGS:
-        logger.error("Settings not loaded. Cannot load questions.")
+        logger.error("Settings not loaded. Cannot determine questions file. Questions will be empty.")
         QUESTIONS = []
         return False
     
-    questions_file_name = SETTINGS.get("QUESTIONS_FILE")
-    if not questions_file_name:
-        logger.critical("CRITICAL: 'QUESTIONS_FILE' not specified in settings.json.")
-        QUESTIONS = []
-        return False
-
-    questions_path = get_data_file_path(questions_file_name) # External path
-    loaded_data = load_json_file(questions_path, "Questions")
-
-    if loaded_data is None:
-        logger.warning(f"Questions file '{questions_path}' not found or error loading. Defaulting to empty questions list.")
-        QUESTIONS = []
-        return False
-    elif not isinstance(loaded_data, list):
-        logger.error(f"Questions file '{questions_path}' does not contain a list. Defaulting to empty questions list.")
-        QUESTIONS = []
-        return False
+    questions_file_name = SETTINGS.get("QUESTIONS_FILE", "questions.json")
     
-    QUESTIONS = loaded_data
-    logger.info(f"Successfully loaded {len(QUESTIONS)} questions from {questions_path}.")
-    return True
+    external_questions_path = get_data_file_path(questions_file_name)
+    loaded_data = load_json_file(external_questions_path, f"External Questions ({questions_file_name})")
+    file_existed_and_valid_externally = isinstance(loaded_data, list) 
 
-def save_questions(questions_data: List[Dict[str, str]], path: Optional[str] = None) -> bool:
-    global QUESTIONS, SETTINGS
+    if not file_existed_and_valid_externally and getattr(sys, 'frozen', False):
+        logger.info(f"External questions not found or invalid at '{external_questions_path}'. "
+                    f"Attempting to load bundled default questions.")
+        internal_questions_path = get_internal_data_path(questions_file_name)
+        bundled_data = load_json_file(internal_questions_path, f"Bundled Default Questions ({questions_file_name})")
 
-    if path is None:
+        if isinstance(bundled_data, list):
+            logger.info(f"Successfully loaded bundled default questions from '{internal_questions_path}'. "
+                        f"These will be used and saved to '{external_questions_path}'.")
+            QUESTIONS = bundled_data
+            if not save_questions(QUESTIONS, questions_file_name): 
+                 logger.error(f"Failed to bootstrap external questions file at '{external_questions_path}' from bundled defaults.")
+            file_existed_and_valid_externally = True 
+        else:
+            logger.warning(f"Bundled default questions also not found or invalid at '{internal_questions_path}'. "
+                           f"Using empty questions list.")
+            QUESTIONS = []
+            file_existed_and_valid_externally = False
+    elif file_existed_and_valid_externally:
+        QUESTIONS = loaded_data
+    else: 
+        logger.warning(f"Questions file '{external_questions_path}' not found, invalid, or not a list. Using empty questions list.")
+        QUESTIONS = []
+        file_existed_and_valid_externally = False
+    
+    if file_existed_and_valid_externally:
+        logger.info(f"Successfully loaded {len(QUESTIONS)} questions.") # General log after decision
+    return file_existed_and_valid_externally
+
+
+def save_questions(questions_data: List[Dict[str, str]], filename: Optional[str] = None) -> bool:
+    global QUESTIONS, SETTINGS 
+
+    if filename is None:
         if SETTINGS and SETTINGS.get("QUESTIONS_FILE"):
-            file_name = SETTINGS["QUESTIONS_FILE"]
+            actual_filename = SETTINGS["QUESTIONS_FILE"]
         else:
             logger.warning("QUESTIONS_FILE not found in settings, using default 'questions.json' for saving.")
-            file_name = "questions.json" 
-            if SETTINGS: SETTINGS["QUESTIONS_FILE"] = file_name
-    else: file_name = path
+            actual_filename = "questions.json" 
+            if SETTINGS: SETTINGS["QUESTIONS_FILE"] = actual_filename 
+    else: actual_filename = filename
 
-    questions_file_path = get_data_file_path(file_name) # External path
+    questions_file_path = get_data_file_path(actual_filename)
     
-    try:
-        with open(questions_file_path, 'w', encoding='utf-8') as f:
-            json.dump(questions_data, f, ensure_ascii=False, indent=2)
-        logger.info(f"Questions successfully saved to {questions_file_path}")
-        QUESTIONS = list(questions_data)
+    if save_json_file(questions_data, questions_file_path, "Questions", indent=2):
+        QUESTIONS = list(questions_data) 
         return True
-    except Exception as e:
-        logger.error(f"Error saving questions to {questions_file_path}: {e}")
     return False
+
 
 def get_text(key: str, lang: Optional[str] = None, default: Optional[str] = None, **kwargs) -> str:
     global SETTINGS, LANGUAGES_CACHE
 
-    current_settings = SETTINGS
-    current_languages_cache = LANGUAGES_CACHE
-
-    if not current_settings:
-        # This is a fallback for very early calls, normally load_settings should run first
-        logger.debug("get_text: SETTINGS not yet loaded, attempting one-time load for this call.")
-        load_settings() # Populates global SETTINGS
-        current_settings = SETTINGS # Re-fetch
-        if not current_settings:
-            logger.error(f"get_text: SETTINGS still not available after load attempt. Key: {key}")
+    if SETTINGS is None:
+        logger.debug("get_text: SETTINGS not loaded. Triggering load.")
+        load_settings()
+        if SETTINGS is None: 
+            logger.error("get_text: SETTINGS still not available after load attempt. Key: %s", key)
             return default if default is not None else f"<S_NF_{key}>"
 
-    if not current_languages_cache:
-        # Fallback for early calls
-        logger.debug("get_text: LANGUAGES_CACHE not yet loaded, attempting one-time load for this call.")
-        load_languages() # Populates global LANGUAGES_CACHE
-        current_languages_cache = LANGUAGES_CACHE # Re-fetch
-        if not current_languages_cache:
-            logger.error(f"get_text: LANGUAGES_CACHE still not available after load attempt. Key: {key}")
+    if LANGUAGES_CACHE is None:
+        logger.debug("get_text: LANGUAGES_CACHE not loaded. Triggering load.")
+        load_languages()
+        if LANGUAGES_CACHE is None: 
+            logger.error("get_text: LANGUAGES_CACHE still not available after load attempt. Key: %s", key)
             return default if default is not None else f"<L_NF_{key}>"
             
     selected_lang = lang
     if selected_lang is None:
-        selected_lang = current_settings.get("DEFAULT_LANG", "en")
+        selected_lang = SETTINGS.get("DEFAULT_LANG", "en")
 
-    lang_pack = current_languages_cache.get(selected_lang)
+    if selected_lang not in LANGUAGES_CACHE:
+        logger.debug(f"get_text: Lang '{selected_lang}' not in LANGUAGES_CACHE. Trying DEFAULT_LANG.")
+        selected_lang = SETTINGS.get("DEFAULT_LANG", "en")
+        if selected_lang not in LANGUAGES_CACHE:
+            logger.debug(f"get_text: DEFAULT_LANG '{selected_lang}' also not in LANGUAGES_CACHE. Trying 'en'.")
+            selected_lang = "en" 
+
+    lang_pack = LANGUAGES_CACHE.get(selected_lang)
     
-    if not lang_pack or key not in lang_pack:
-        default_app_lang = current_settings.get("DEFAULT_LANG", "en")
-        if selected_lang != default_app_lang: # Try default app lang if different
-            lang_pack = current_languages_cache.get(default_app_lang)
-        
-        if not lang_pack or key not in lang_pack: # If still not found, try 'en' as ultimate fallback
-            if default_app_lang != "en": 
-                lang_pack = current_languages_cache.get("en")
+    if not lang_pack:
+        logger.error(f"I18N: Language pack for '{selected_lang}' (and fallbacks) not found. Key: '{key}'.")
+        return default if default is not None else f"<LP_NF_{key}_{selected_lang}>"
 
-    text_template = lang_pack.get(key) if lang_pack else None
+    text_template = lang_pack.get(key)
+
+    if text_template is None:
+        default_app_lang = SETTINGS.get("DEFAULT_LANG", "en")
+        if selected_lang != default_app_lang:
+            logger.debug(f"I18N: Key '{key}' not found in '{selected_lang}'. Trying app default '{default_app_lang}'.")
+            lang_pack_default_app = LANGUAGES_CACHE.get(default_app_lang)
+            if lang_pack_default_app:
+                text_template = lang_pack_default_app.get(key)
+        
+        if text_template is None and selected_lang != "en" and default_app_lang != "en":
+            logger.debug(f"I18N: Key '{key}' not found in app default '{default_app_lang}'. Trying 'en'.")
+            lang_pack_en = LANGUAGES_CACHE.get("en")
+            if lang_pack_en:
+                text_template = lang_pack_en.get(key)
 
     if text_template is None:
         if default is not None: return default
-        logger.warning(f"I18N: Key '{key}' not found for lang '{selected_lang}' or fallbacks.")
-        return f"<{key}_!{selected_lang}>"
+        logger.warning(f"I18N: Key '{key}' not found for lang '{lang}' or fallbacks ('{selected_lang}', app default, 'en').")
+        return f"<{key}_!{lang or selected_lang}>" 
     
     try:
         return text_template.format(**kwargs)
     except KeyError as e:
-        logger.warning(f"I18N: Placeholder {e} missing for key '{key}' in lang '{selected_lang}'. Tpl: '{text_template}'")
+        logger.warning(f"I18N: Placeholder {e} missing for key '{key}' in lang '{selected_lang}'. Template: '{text_template}'")
         return text_template 
-    except Exception as e:
-        logger.error(f"I18N: Formatting error for key '{key}', lang '{selected_lang}': {e}")
+    except Exception as e: 
+        logger.error(f"I18N: Formatting error for key '{key}', lang '{selected_lang}': {e}. Template: '{text_template}'")
         return f"<F_ERR_{key}_{selected_lang}>"
