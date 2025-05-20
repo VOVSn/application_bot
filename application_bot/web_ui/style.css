@@ -154,6 +154,8 @@ input:checked + .toggle-slider:before {
     padding: 2px 0;
 }
 
+/* ... (previous styles remain the same) ... */
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
@@ -257,6 +259,44 @@ input:checked + .toggle-slider:before {
 }
 
 
+/* PDF Settings Modal Specific Styles */
+.pdf-settings-form-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 10px; /* Space for scrollbar */
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+    gap: 15px;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.form-group label {
+    font-size: 13px;
+    font-weight: 500;
+}
+.form-group .neumorphic-input, .form-group select.neumorphic-input {
+    width: 100%; /* Make inputs take full width of grid cell */
+    text-align: left; /* Override default right align for these inputs */
+}
+.form-group.full-width-checkbox {
+    grid-column: 1 / -1; /* Span full width */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+.pdf-setting-toggle {
+    /* Adjust if toggle switch looks too large or small */
+    transform: scale(0.9); 
+}
+
+
+
 /* Light Mode */
 body {
     background-color: #e8e3d9;
@@ -332,24 +372,34 @@ input:checked + .toggle-slider:before { background: linear-gradient(145deg, #d9c
 .questions-table-container { border-color: #d1c9bd; }
 #questions-table th, #questions-table td { border-bottom-color: #d1c9bd; }
 #questions-table th { background-color: #e8e3d9; } 
-#questions-table input[type="text"].neumorphic-input { /* Already inherits neumorphic styles */
-    background-color: #fff; /* Override for table inputs */
+#questions-table input[type="text"].neumorphic-input { 
+    background-color: #fff; 
     border-color: #ccc;
     color: #333;
 }
 #questions-table input[type="text"].neumorphic-input:focus { border-color: #ad9d7c; }
 .modal-button.primary {
-    background: linear-gradient(145deg, #adc3b2, #9cb3a2); /* Softer green */
+    background: linear-gradient(145deg, #adc3b2, #9cb3a2); 
     color: #2e7d32;
 }
 .modal-button.primary:active:not(:disabled) {
     box-shadow: inset 3px 3px 7px #8ca392, inset -3px -3px 7px #bcc3c2;
 }
+/* Light mode PDF settings */
+.light-mode .pdf-settings-form-container .neumorphic-input { /* Specificity for PDF settings inputs */
+    background: #fff; /* Brighter inputs for form */
+    border: 1px solid #ccc;
+    box-shadow: inset 1px 1px 3px #ddd, inset -1px -1px 3px #fff;
+    color: #333;
+}
+.light-mode .pdf-settings-form-container .neumorphic-input:focus {
+    border-color: #ad9d7c;
+}
 
 
 /* Dark Mode */
 body.dark-mode {
-    background-color: #3a3a3a; /* Darker background */
+    background-color: #3a3a3a; 
     color: #d1d1d1;
 }
 .dark-mode .left-panel, .dark-mode .right-panel {
@@ -361,7 +411,7 @@ body.dark-mode {
 .dark-mode .status-display.running { background-color: #38593a; color: #a5d6a7; }
 .dark-mode .status-display.stopped { background-color: #733438; color: #ef9a9a; }
 .dark-mode .status-display.error { background-color: #78502a; color: #ffcc80; }
-.dark-mode .status-display.intermediate { background-color: #4a463a; color: #fff59d; } /* Darker Yellowish */
+.dark-mode .status-display.intermediate { background-color: #4a463a; color: #fff59d; } 
 
 
 .dark-mode .neumorphic-button {
@@ -390,14 +440,14 @@ body.dark-mode {
 }
 
 .dark-mode .toggle-slider {
-    background: #2f2f2f; /* Darker base for toggle */
+    background: #2f2f2f; 
     box-shadow: inset 1px 1px 3px #252525, inset -1px -1px 3px #393939;
 }
 .dark-mode .toggle-slider:before {
     background: linear-gradient(145deg, #525252, #484848);
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
 }
-.dark-mode input:checked + .toggle-slider { background: linear-gradient(145deg, #507a50, #406a40); } /* Greenish when checked */
+.dark-mode input:checked + .toggle-slider { background: linear-gradient(145deg, #507a50, #406a40); } 
 .dark-mode input:checked + .toggle-slider:before { background: linear-gradient(145deg, #608a60, #507a50); }
 
 
@@ -424,14 +474,25 @@ body.dark-mode {
 .dark-mode #questions-table th, .dark-mode #questions-table td { border-bottom-color: #5f5f5f; }
 .dark-mode #questions-table th { background-color: #424242; } 
 .dark-mode #questions-table input[type="text"].neumorphic-input {
-    background-color: #383838; /* Override for table inputs */
+    background-color: #383838; 
     border-color: #666;
     color: #e0e0e0;
 }
 .dark-mode #questions-table input[type="text"].neumorphic-input:focus { border-color: #888; }
 .dark-mode .modal-button.primary {
-    background: linear-gradient(145deg, #507a50, #406a40); /* Greenish for save */
+    background: linear-gradient(145deg, #507a50, #406a40); 
 }
 .dark-mode .modal-button.primary:active:not(:disabled) {
     box-shadow: inset 3px 3px 7px #305a30, inset -3px -3px 7px #609a60;
+}
+
+/* Dark mode PDF settings */
+.dark-mode .pdf-settings-form-container .neumorphic-input { /* Specificity for PDF settings inputs */
+    background: #383838;
+    border: 1px solid #5f5f5f;
+    box-shadow: inset 1px 1px 3px #2e2e2e, inset -1px -1px 3px #424242;
+    color: #e0e0e0;
+}
+.dark-mode .pdf-settings-form-container .neumorphic-input:focus {
+    border-color: #888;
 }
