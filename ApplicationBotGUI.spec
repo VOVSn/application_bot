@@ -8,8 +8,9 @@ a = Analysis(
     binaries=[],
     datas=[
         ('application_bot/web_ui', 'web_ui'),        # For pywebview UI
-        ('application_bot/settings.json', '.'),      # Settings file at the root of the app folder
-        ('application_bot/questions.json', '.'),     # Questions file at the root
+        ('application_bot/settings.json', '.'),      # Settings file at the root of the app folder (external)
+        ('application_bot/questions.json', '.'),     # Questions file at the root (external)
+        ('application_bot/languages.json', '.'),     # Languages file, accessed as internal via _MEIPASS
         ('application_bot/fonts', 'fonts')           # Fonts folder
     ],
     hiddenimports=[

@@ -7,9 +7,8 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler, ContextTypes 
 from telegram.request import HTTPXRequest
 
-# MODIFIED IMPORTS
 from application_bot import utils
-from application_bot.utils import load_settings, load_questions, get_text 
+from application_bot.utils import load_settings, load_questions, load_languages, get_text # Added load_languages
 from application_bot.constants import (
     STATE_ASKING_QUESTIONS, STATE_AWAITING_PHOTO,
     STATE_CONFIRM_CANCEL_EXISTING, STATE_CONFIRM_GLOBAL_CANCEL
@@ -34,9 +33,9 @@ from application_bot.handlers.conversation_logic import (
 logger = logging.getLogger(__name__)
 
 async def global_file_size_filter(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    if not utils.SETTINGS: return True # MODIFIED
+    if not utils.SETTINGS: return True
 
-    max_size_mb = utils.SETTINGS.get("MAX_ALLOWED_FILE_SIZE_MB", 10) # MODIFIED
+    max_size_mb = utils.SETTINGS.get("MAX_ALLOWED_FILE_SIZE_MB", 10)
     max_size_bytes = max_size_mb * 1024 * 1024
     message = update.message
 
@@ -62,16 +61,19 @@ async def global_file_size_filter(update: Update, context: ContextTypes.DEFAULT_
     return True 
 
 def create_bot_application():
-    if not utils.SETTINGS or not utils.SETTINGS.get("BOT_TOKEN"): # MODIFIED
+    if not utils.SETTINGS or not utils.SETTINGS.get("BOT_TOKEN"):
         logger.critical("BOT_TOKEN not found in settings. Bot cannot be created.")
         return None
-    if utils.QUESTIONS is None: # MODIFIED
+    if utils.QUESTIONS is None:
         logger.warning("QUESTIONS not loaded. /apply command might fail.")
+    if utils.LANGUAGES_CACHE is None: # Added check for languages
+        logger.warning("LANGUAGES_CACHE not loaded. Bot text might be affected.")
 
-    connect_timeout = utils.SETTINGS.get("HTTP_CONNECT_TIMEOUT", 10.0) # MODIFIED
-    read_timeout = utils.SETTINGS.get("HTTP_READ_TIMEOUT", 30.0) # MODIFIED
-    write_timeout = utils.SETTINGS.get("HTTP_WRITE_TIMEOUT", 30.0) # MODIFIED
-    pool_timeout = utils.SETTINGS.get("HTTP_POOL_TIMEOUT", 15.0) # MODIFIED
+
+    connect_timeout = utils.SETTINGS.get("HTTP_CONNECT_TIMEOUT", 10.0)
+    read_timeout = utils.SETTINGS.get("HTTP_READ_TIMEOUT", 30.0)
+    write_timeout = utils.SETTINGS.get("HTTP_WRITE_TIMEOUT", 30.0)
+    pool_timeout = utils.SETTINGS.get("HTTP_POOL_TIMEOUT", 15.0)
     logger.info(
         f"Configuring HTTPX timeouts: connect={connect_timeout}s, read={read_timeout}s, "
         f"write={write_timeout}s, pool={pool_timeout}s"
@@ -80,7 +82,7 @@ def create_bot_application():
         connect_timeout=connect_timeout, read_timeout=read_timeout,
         write_timeout=write_timeout, pool_timeout=pool_timeout
     )
-    app_builder = Application.builder().token(utils.SETTINGS["BOT_TOKEN"]).concurrent_updates(True).request(custom_request) # MODIFIED
+    app_builder = Application.builder().token(utils.SETTINGS["BOT_TOKEN"]).concurrent_updates(True).request(custom_request)
     application = app_builder.build()
 
     conv_handler = ConversationHandler(
@@ -106,10 +108,14 @@ def create_bot_application():
             CommandHandler("cancel", ch_cancel_entry_point), 
             MessageHandler(filters.COMMAND, cl_unhandled_message_in_conv),
         ],
-        conversation_timeout=utils.SETTINGS.get("CONVERSATION_TIMEOUT_SECONDS", 1200), # MODIFIED
+        conversation_timeout=utils.SETTINGS.get("CONVERSATION_TIMEOUT_SECONDS", 1200),
         per_user=True,
         per_chat=True,
+        # Removed timeout handler from fallbacks, it's a direct kwarg.
+        # map_to_parent is not used here.
     )
+    # Add conversation_timeout_handler_function as a direct argument to ConversationHandler
+    # application.add_handler(TypeHandler(Update, cl_conversation_timeout_handler), group=-1) # This is how PTB examples show it for timeout
 
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("start", ch_start_command))
@@ -167,9 +173,11 @@ async def stop_bot_async(application: Application):
         logger.error(f"Exception during bot stop: {e}", exc_info=True)
 
 def main_cli():
-    if not load_settings():
+    if not load_settings(): # Loads settings into utils.SETTINGS
         sys.exit("CRITICAL: Settings not loaded. Exiting CLI.")
-    if not load_questions():
+    if not load_languages(): # Loads languages into utils.LANGUAGES_CACHE
+        logger.warning("CLI: Languages not loaded. Bot text might be affected.")
+    if not load_questions(): # Loads questions into utils.QUESTIONS
         logger.warning("CLI: Questions not loaded. /apply may be affected.")
 
     if not logging.getLogger().handlers:
@@ -193,7 +201,7 @@ def main_cli():
         finally:
             if loop.is_running():
                 loop.stop() 
-            pass 
+            # loop.close() # Not typically needed here as run_until_complete handles it
         logger.info("Bot polling stopped (CLI mode).")
     else:
         logger.error("Failed to create bot application. Exiting CLI.")
