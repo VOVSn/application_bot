@@ -8,7 +8,7 @@ import queue
 from collections import deque
 import time
 import json
-import html
+import html # Ensure html is imported
 import os
 import platform
 import subprocess
@@ -118,7 +118,7 @@ class PyWebviewApi:
             logger.error("GUI API: Cannot open applications folder, SETTINGS not loaded.")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_settings_not_loaded", self._gui.current_language, default="Error: Settings not loaded. Cannot open folder.")
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # MODIFIED: quote=False
             return
 
         app_folder_name = utils.SETTINGS.get("APPLICATION_FOLDER")
@@ -126,7 +126,7 @@ class PyWebviewApi:
             logger.error("GUI API: APPLICATION_FOLDER not defined in settings.")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_app_folder_not_configured", self._gui.current_language, default="Error: Application folder not configured.")
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # MODIFIED: quote=False
             return
 
         folder_path = get_external_file_path(app_folder_name)
@@ -140,7 +140,7 @@ class PyWebviewApi:
                 logger.error(f"GUI API: Could not create applications folder {folder_path}: {e}")
                 if self._gui.window:
                     alert_msg = get_text("gui_alert_cannot_create_folder", self._gui.current_language, default="Error: Could not create or access folder. Check logs.").format(folder=folder_path)
-                    self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
+                    self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # MODIFIED: quote=False
                 return
 
         try:
@@ -156,7 +156,7 @@ class PyWebviewApi:
             logger.error(f"GUI API: Error opening folder '{normalized_folder_path}': {e}")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_cannot_open_folder", self._gui.current_language, default="Error: Could not open folder. Check logs.").format(folder=normalized_folder_path)
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # MODIFIED: quote=False
 
     def set_system_language(self, lang_code: str):
         if not utils.SETTINGS:
@@ -398,7 +398,9 @@ class BotGUI:
                         break 
                 
                 if messages_to_send and self.window:
-                    js_safe_messages = [html.escape(m) for m in messages_to_send]
+                    # MODIFICATION START: html.escape with quote=False
+                    js_safe_messages = [html.escape(m, quote=False) for m in messages_to_send]
+                    # MODIFICATION END
                     js_messages_array_str = json.dumps(js_safe_messages)
                     self._gui_eval_js(f'addBatchLogMessages({js_messages_array_str})')
 
@@ -533,7 +535,9 @@ class BotGUI:
             "currentLang": self.current_language,
             "guiTranslations": gui_translations,
             "maxLogLines": self.current_max_log_lines,
-            "initialLogs": list(self.log_deque)
+            # MODIFICATION START: html.escape with quote=False for initial logs
+            "initialLogs": [html.escape(log_item, quote=False) for log_item in list(self.log_deque)]
+            # MODIFICATION END
         }
         self._gui_eval_js(f"initializeGui({json.dumps(initial_config)})")
         
@@ -548,13 +552,17 @@ class BotGUI:
         self.log_deque = deque(maxlen=self.current_max_log_lines)
         for log_item in current_logs[-self.current_max_log_lines:]:
             self.log_deque.append(log_item)
-            
-        js_safe_current_logs = [html.escape(m) for m in list(self.log_deque)]
+        
+        # MODIFICATION START: html.escape with quote=False
+        js_safe_current_logs = [html.escape(m, quote=False) for m in list(self.log_deque)]
+        # MODIFICATION END
         self._gui_eval_js(f"setLogLinesConfig({self.current_max_log_lines}, {json.dumps(js_safe_current_logs)})")
 
     def repopulate_logs_to_frontend(self):
         if self.log_deque:
-            js_safe_logs = [html.escape(m) for m in list(self.log_deque)]
+            # MODIFICATION START: html.escape with quote=False
+            js_safe_logs = [html.escape(m, quote=False) for m in list(self.log_deque)]
+            # MODIFICATION END
             self._gui_eval_js(f"clearLogs(); addBatchLogMessages({json.dumps(js_safe_logs)})")
 
 

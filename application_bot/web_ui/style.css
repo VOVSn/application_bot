@@ -144,10 +144,22 @@ input:checked + .toggle-slider:before {
     line-height: 1.4;
     white-space: pre-wrap; /* Allows wrapping and respects newlines */
     word-break: break-all; /* Break long words if necessary */
+    
+    user-select: text !important;
+    -webkit-user-select: text !important; 
+    -moz-user-select: text !important;    
+    -ms-user-select: text !important;     
+    pointer-events: auto !important;
 }
 .log-area div { /* Each log message as a div */
     margin-bottom: 2px;
     padding: 2px 0;
+    
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    pointer-events: auto !important;
 }
 
 /* Modal Styles (General) */
@@ -336,8 +348,6 @@ body.light-mode { background-color: #e8e3d9; color: #5a5346; }
     box-shadow: inset 4px 4px 11px #cbc6bd, inset -4px -4px 11px #f5f0e5;
     color: #4a4336;
 }
-.light-mode .log-area::-webkit-scrollbar-thumb { background-color: #c5bdab; }
-.light-mode .log-area::-webkit-scrollbar-thumb:hover { background-color: #b9b1a0; }
 .light-mode .modal-content { background-color: #f0f0f0; box-shadow: 0 5px 20px rgba(0,0,0,0.15); color: #444; }
 .light-mode .modal-content h2 { color: #333; }
 .light-mode .questions-table-container { border-color: #d1c9bd; }
@@ -382,8 +392,6 @@ body.dark-mode { background-color: #3a3a3a; color: #d1d1d1; }
     box-shadow: inset 4px 4px 11px #2a2a2a, inset -4px -4px 11px #4a4a4a;
     color: #c0c0c0;
 }
-.dark-mode .log-area::-webkit-scrollbar-thumb { background-color: #5a5a5a; }
-.dark-mode .log-area::-webkit-scrollbar-thumb:hover { background-color: #6a6a6a; }
 .dark-mode .logo-placeholder { filter: invert(0.8); }
 .dark-mode .modal-content { background-color: #4a4a4a; box-shadow: 0 5px 25px rgba(0,0,0,0.3); color: #e0e0e0; }
 .dark-mode .modal-content h2 { color: #f0f0f0; }
@@ -396,19 +404,40 @@ body.dark-mode { background-color: #3a3a3a; color: #d1d1d1; }
 .dark-mode .tab-button { color: #aaa; }
 .dark-mode .tab-button.active { color: #e0e0e0; border-bottom-color: #6c9ced; }
 
-/* Scrollbar styling for modal content areas */
+/* Scrollbar styling for modal content areas AND LOG AREA */
 .questions-table-container::-webkit-scrollbar,
-.tab-content::-webkit-scrollbar { width: 8px; }
+.tab-content::-webkit-scrollbar,
+.log-area::-webkit-scrollbar { /* MODIFIED: Added .log-area */
+    width: 8px; 
+}
 
 .questions-table-container::-webkit-scrollbar-track,
-.tab-content::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
+.tab-content::-webkit-scrollbar-track,
+.log-area::-webkit-scrollbar-track { /* MODIFIED: Added .log-area */
+    background: transparent; 
+    margin: 5px 0; 
+}
 
 .light-mode .questions-table-container::-webkit-scrollbar-thumb,
-.light-mode .tab-content::-webkit-scrollbar-thumb { background-color: #c5bdab; border-radius: 10px; }
+.light-mode .tab-content::-webkit-scrollbar-thumb,
+.light-mode .log-area::-webkit-scrollbar-thumb { /* MODIFIED: Added .log-area */
+    background-color: #c5bdab; 
+    border-radius: 10px; 
+}
 .light-mode .questions-table-container::-webkit-scrollbar-thumb:hover,
-.light-mode .tab-content::-webkit-scrollbar-thumb:hover { background-color: #b9b1a0; }
+.light-mode .tab-content::-webkit-scrollbar-thumb:hover,
+.light-mode .log-area::-webkit-scrollbar-thumb:hover { /* MODIFIED: Added .log-area */
+    background-color: #b9b1a0; 
+}
 
 .dark-mode .questions-table-container::-webkit-scrollbar-thumb,
-.dark-mode .tab-content::-webkit-scrollbar-thumb { background-color: #5a5a5a; border-radius: 10px; }
+.dark-mode .tab-content::-webkit-scrollbar-thumb,
+.dark-mode .log-area::-webkit-scrollbar-thumb { /* MODIFIED: Added .log-area */
+    background-color: #5a5a5a; 
+    border-radius: 10px; 
+}
 .dark-mode .questions-table-container::-webkit-scrollbar-thumb:hover,
-.dark-mode .tab-content::-webkit-scrollbar-thumb:hover { background-color: #6a6a6a; }
+.dark-mode .tab-content::-webkit-scrollbar-thumb:hover,
+.dark-mode .log-area::-webkit-scrollbar-thumb:hover { /* MODIFIED: Added .log-area */
+    background-color: #6a6a6a; 
+}
