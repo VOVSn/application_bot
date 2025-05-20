@@ -99,6 +99,7 @@ body {
     font-size: 14px;
     width: 100%; /* Inputs in modals often span width */
     text-align: left; /* Override general right align if any */
+    box-sizing: border-box;
 }
 /* For number inputs that should remain smaller in modals */
 #settings-modal-log-lines-input {
@@ -227,17 +228,32 @@ input:checked + .toggle-slider:before {
     border-radius: 8px;
     min-height: 150px;
 }
-#questions-table { width: 100%; border-collapse: collapse; }
+#questions-table { width: 100%; border-collapse: collapse; table-layout: fixed; } /* Added table-layout: fixed */
 #questions-table th, #questions-table td {
     padding: 10px; text-align: left;
     border-bottom: 1px solid; /* Theme color */
     vertical-align: middle;
+    word-wrap: break-word; /* Ensure long text wraps */
 }
 #questions-table th {
     font-weight: 600; position: sticky; top: 0; z-index: 10;
     /* Background color for sticky header set by theme */
 }
 #questions-table tbody tr:last-child td { border-bottom: none; }
+
+/* Column width definitions for questions table */
+#questions-table th:first-child, /* Text Header */
+#questions-table td:first-child { /* Text Cell */
+    /* Text column will take remaining space */
+}
+#questions-table th:last-child, /* Actions Header */
+#questions-table td:last-child { /* Actions Cell */
+    width: 100px; /* Fixed width for Actions column */
+    text-align: center; /* Center content like delete button */
+}
+
+/* Styles for .question-id-display removed as it's no longer used */
+
 #questions-table input[type="text"].modal-input { width: 100%; } /* Ensure full width in table cell */
 #questions-table .action-button { padding: 5px 10px; font-size: 13px; margin-right: 5px; min-width: auto; }
 #questions-table .action-button:last-child { margin-right: 0; }
@@ -262,7 +278,6 @@ input:checked + .toggle-slider:before {
     display: none; /* Hidden by default, JS makes active */
     flex-grow: 1;
     overflow-y: auto; /* Scroll content within tab if needed */
-    /* max-height: calc(90vh - 220px); Approx calculation, adjust as needed */
     padding: 5px 10px 5px 5px; /* Padding for the content area, more on right for scrollbar */
 }
 .tab-content.active-tab { display: block; }
@@ -358,6 +373,7 @@ body.light-mode { background-color: #e8e3d9; color: #5a5346; }
 .light-mode .tab-container { border-bottom-color: #d1c9bd; }
 .light-mode .tab-button { color: #777; }
 .light-mode .tab-button.active { color: #333; border-bottom-color: #4a80d3; }
+/* Removed .light-mode #questions-table .question-id-display */
 
 
 /* Dark Mode Specifics */
@@ -403,41 +419,42 @@ body.dark-mode { background-color: #3a3a3a; color: #d1d1d1; }
 .dark-mode .tab-container { border-bottom-color: #5f5f5f; }
 .dark-mode .tab-button { color: #aaa; }
 .dark-mode .tab-button.active { color: #e0e0e0; border-bottom-color: #6c9ced; }
+/* Removed .dark-mode #questions-table .question-id-display */
 
 /* Scrollbar styling for modal content areas AND LOG AREA */
 .questions-table-container::-webkit-scrollbar,
 .tab-content::-webkit-scrollbar,
-.log-area::-webkit-scrollbar { /* MODIFIED: Added .log-area */
+.log-area::-webkit-scrollbar {
     width: 8px; 
 }
 
 .questions-table-container::-webkit-scrollbar-track,
 .tab-content::-webkit-scrollbar-track,
-.log-area::-webkit-scrollbar-track { /* MODIFIED: Added .log-area */
+.log-area::-webkit-scrollbar-track {
     background: transparent; 
     margin: 5px 0; 
 }
 
 .light-mode .questions-table-container::-webkit-scrollbar-thumb,
 .light-mode .tab-content::-webkit-scrollbar-thumb,
-.light-mode .log-area::-webkit-scrollbar-thumb { /* MODIFIED: Added .log-area */
+.light-mode .log-area::-webkit-scrollbar-thumb {
     background-color: #c5bdab; 
     border-radius: 10px; 
 }
 .light-mode .questions-table-container::-webkit-scrollbar-thumb:hover,
 .light-mode .tab-content::-webkit-scrollbar-thumb:hover,
-.light-mode .log-area::-webkit-scrollbar-thumb:hover { /* MODIFIED: Added .log-area */
+.light-mode .log-area::-webkit-scrollbar-thumb:hover {
     background-color: #b9b1a0; 
 }
 
 .dark-mode .questions-table-container::-webkit-scrollbar-thumb,
 .dark-mode .tab-content::-webkit-scrollbar-thumb,
-.dark-mode .log-area::-webkit-scrollbar-thumb { /* MODIFIED: Added .log-area */
+.dark-mode .log-area::-webkit-scrollbar-thumb {
     background-color: #5a5a5a; 
     border-radius: 10px; 
 }
 .dark-mode .questions-table-container::-webkit-scrollbar-thumb:hover,
 .dark-mode .tab-content::-webkit-scrollbar-thumb:hover,
-.dark-mode .log-area::-webkit-scrollbar-thumb:hover { /* MODIFIED: Added .log-area */
+.dark-mode .log-area::-webkit-scrollbar-thumb:hover {
     background-color: #6a6a6a; 
 }

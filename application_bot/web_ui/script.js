@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentMaxLogLines = 100;
     let currentGuiTranslations = {};
     let statusPrefix = "Status: ";
-    let currentQuestionsData = [];
+    let currentQuestionsData = []; // Stores the full question objects including non-editable ID
     let currentFetchedSettings = {}; // To store settings fetched for the modal
 
     if (uiElements.logoImage) {
@@ -72,10 +72,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.classList.toggle('light-mode', !isDark);
     }
 
-    // This listener is for the toggle INSIDE the settings modal
     uiElements.settingsModalDarkModeToggle.addEventListener('change', function () {
-        // applyTheme(this.checked); // Theme applied on save for consistency
-        // localStorage.setItem('darkMode', this.checked.toString()); // Saved on modal save
+        // Theme applied on save for consistency
     });
 
     window.applyGuiTranslations = function(translations) {
@@ -89,34 +87,26 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('[data-i18n-key]').forEach(el => {
             const key = el.dataset.i18nKey;
             if (translations[key]) {
-                if (el.tagName === 'OPTION') { // For select options
+                if (el.tagName === 'OPTION') {
                     el.textContent = translations[key];
                 } else if (el.tagName === 'INPUT' && (el.type === 'button' || el.type === 'submit') || el.tagName === 'BUTTON') {
-                    el.textContent = translations[key]; // For buttons
+                    el.textContent = translations[key];
                 } else if (el.tagName === 'LABEL' || el.tagName === 'H2' || el.tagName === 'TH' || el.id === 'gui_title_text') {
-                     el.textContent = translations[key]; // For labels, headings, table headers
+                     el.textContent = translations[key];
                 }
-                // Input placeholders can be handled here if needed:
-                // else if (el.tagName === 'INPUT' && el.placeholder && translations[key + "_placeholder"]) {
-                //    el.placeholder = translations[key + "_placeholder"];
-                // }
             }
         });
 
-        // Re-populate questions table if modal is open to update delete button text
         if (uiElements.questionsModal.style.display === 'flex') {
-            populateQuestionsTable(currentQuestionsData);
+            populateQuestionsTable(currentQuestionsData); // Re-populate to update delete button text
         }
     };
 
-    // This listener is for the toggle INSIDE the settings modal
     uiElements.settingsModalLangToggle.addEventListener('change', function() {
-        // const newLang = this.checked ? 'ru' : 'en';
         // Language change is handled on modal save now
     });
 
-    window.setSystemLanguageToggleState = function(langCode) { // Called by Python
-        // This function sets the state of the language toggle in the settings modal
+    window.setSystemLanguageToggleState = function(langCode) {
         if (uiElements.settingsModalLangToggle) {
             uiElements.settingsModalLangToggle.checked = (langCode === 'ru');
         }
@@ -145,9 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // This listener is for the input INSIDE the settings modal
     uiElements.settingsModalLogLinesInput.addEventListener('change', function() {
-        // const newMax = parseInt(this.value, 10);
         // Log lines change is handled on modal save now
     });
 
@@ -156,11 +144,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (uiElements.statusMessageContent) uiElements.statusMessageContent.textContent = messageToDisplay;
         const statusDisplayDiv = document.getElementById('status-display');
         if (statusDisplayDiv) {
-            statusDisplayDiv.className = 'status-display'; // Reset classes
+            statusDisplayDiv.className = 'status-display';
             if (isError) statusDisplayDiv.classList.add('error');
             else if (isRunning === true) statusDisplayDiv.classList.add('running');
             else if (isRunning === false) statusDisplayDiv.classList.add('stopped');
-            else if (isRunning === null) statusDisplayDiv.classList.add('intermediate'); // For starting/stopping
+            else if (isRunning === null) statusDisplayDiv.classList.add('intermediate');
         }
     };
 
@@ -169,15 +157,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const fragment = document.createDocumentFragment();
         messagesArray.forEach(msg => {
             const logEntry = document.createElement('div');
-            logEntry.textContent = msg; // msg is already html-escaped by Python
+            logEntry.textContent = msg;
             fragment.appendChild(logEntry);
         });
         uiElements.logOutput.appendChild(fragment);
-        // Ensure log lines are trimmed according to currentMaxLogLines
         while (uiElements.logOutput.children.length > currentMaxLogLines) {
             uiElements.logOutput.removeChild(uiElements.logOutput.firstChild);
         }
-        uiElements.logOutput.scrollTop = uiElements.logOutput.scrollHeight; // Auto-scroll
+        uiElements.logOutput.scrollTop = uiElements.logOutput.scrollHeight;
     };
 
     window.setButtonState = function (buttonId, enabled) {
@@ -185,22 +172,20 @@ document.addEventListener('DOMContentLoaded', function () {
         if (button) button.disabled = !enabled;
     };
 
-    window.setLogLinesConfig = function(maxLines, currentLogs = []) { // Called by Python
+    window.setLogLinesConfig = function(maxLines, currentLogs = []) {
         currentMaxLogLines = parseInt(maxLines, 10);
-        // Update the input inside the settings modal if it exists
         if(uiElements.settingsModalLogLinesInput) uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
-
         clearLogs();
         if (currentLogs && currentLogs.length > 0) addBatchLogMessages(currentLogs);
     };
 
     window.clearLogs = function() { if(uiElements.logOutput) uiElements.logOutput.innerHTML = ''; };
 
-    // --- Questions Modal Logic (largely unchanged) ---
+    // --- Questions Modal Logic ---
     function openQuestionsModal() {
         if (window.pywebview && window.pywebview.api.get_questions) {
             window.pywebview.api.get_questions().then(questions => {
-                currentQuestionsData = JSON.parse(JSON.stringify(questions || []));
+                currentQuestionsData = JSON.parse(JSON.stringify(questions || [])); // Deep copy
                 populateQuestionsTable(currentQuestionsData);
                 uiElements.questionsModal.style.display = 'flex';
             }).catch(err => {
@@ -215,59 +200,75 @@ document.addEventListener('DOMContentLoaded', function () {
         uiElements.questionsModal.style.display = 'none';
         uiElements.questionsTableBody.innerHTML = '';
     }
+
     function populateQuestionsTable(questions) {
         uiElements.questionsTableBody.innerHTML = '';
         questions.forEach((q, index) => {
             const row = uiElements.questionsTableBody.insertRow();
-            const idCell = row.insertCell();
-            idCell.innerHTML = `<input type="text" class="neumorphic-input modal-input" value="${q.id || ''}" placeholder="unique_question_id">`;
+            row.dataset.originalIndex = index; // Store original index for stable ID reference
+
+            // ID Cell Removed
             const textCell = row.insertCell();
             textCell.innerHTML = `<input type="text" class="neumorphic-input modal-input" value="${q.text || ''}" placeholder="Question text...">`;
+
             const actionsCell = row.insertCell();
             const deleteButton = document.createElement('button');
             deleteButton.textContent = currentGuiTranslations.gui_modal_delete_button || 'Delete';
             deleteButton.classList.add('neumorphic-button', 'action-button', 'modal-button');
-            deleteButton.onclick = () => deleteQuestionRow(index);
+            deleteButton.onclick = () => deleteQuestionRow(index); // index in currentQuestionsData
             actionsCell.appendChild(deleteButton);
         });
     }
-    function deleteQuestionRow(index) {
-        currentQuestionsData.splice(index, 1);
-        populateQuestionsTable(currentQuestionsData);
+
+    function deleteQuestionRow(indexInCurrentData) {
+        currentQuestionsData.splice(indexInCurrentData, 1);
+        populateQuestionsTable(currentQuestionsData); // Re-render based on modified currentQuestionsData
     }
+
     uiElements.editQuestionsButton.addEventListener('click', openQuestionsModal);
     uiElements.cancelQuestionsButton.addEventListener('click', closeQuestionsModal);
+
     uiElements.addQuestionButton.addEventListener('click', () => {
-        currentQuestionsData.push({ id: `new_q_${Date.now()}`, text: '' });
+        currentQuestionsData.push({ id: `new_q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, text: '' }); // More unique ID
         populateQuestionsTable(currentQuestionsData);
         const tableContainer = uiElements.questionsModal.querySelector('.questions-table-container');
         if (tableContainer) tableContainer.scrollTop = tableContainer.scrollHeight;
     });
+
     uiElements.saveQuestionsButton.addEventListener('click', () => {
         const updatedQuestions = [];
         const rows = uiElements.questionsTableBody.rows;
         let hasError = false;
+
         for (let i = 0; i < rows.length; i++) {
-            const idInput = rows[i].cells[0].querySelector('input');
-            const textInput = rows[i].cells[1].querySelector('input');
-            const id = idInput.value.trim();
+            const originalIndex = parseInt(rows[i].dataset.originalIndex, 10);
+            // Retrieve the original ID from our currentQuestionsData array, as it's no longer in the table
+            const id = currentQuestionsData[originalIndex] ? currentQuestionsData[originalIndex].id : `new_q_save_fallback_${Date.now()}_${i}`;
+            
+            const textInput = rows[i].cells[0].querySelector('input'); // Text input is in the first cell (index 0)
             const text = textInput.value.trim();
-            idInput.style.borderColor = ''; textInput.style.borderColor = ''; // Reset border
-            if (!id || !text) {
-                alert((currentGuiTranslations.gui_alert_question_empty_fields || "Question ID and Text cannot be empty. Fill all fields for row {row_num}.").replace('{row_num}', i + 1));
-                if(!id) idInput.style.borderColor = 'red';
-                if(!text) textInput.style.borderColor = 'red';
+            
+            textInput.style.borderColor = ''; 
+
+            if (!text) {
+                alert((currentGuiTranslations.gui_alert_question_text_empty || "Question Text cannot be empty for row {row_num}.").replace('{row_num}', i + 1));
+                textInput.style.borderColor = 'red';
                 hasError = true; break;
             }
             updatedQuestions.push({ id: id, text: text });
         }
+
         if (hasError) return;
+
         const ids = updatedQuestions.map(q => q.id);
         const duplicateIds = ids.filter((item, index) => ids.indexOf(item) !== index);
         if (duplicateIds.length > 0) {
-            alert((currentGuiTranslations.gui_alert_duplicate_ids || "Duplicate question IDs found: {ids}. IDs must be unique.").replace('{ids}', duplicateIds.join(', ')));
-            return;
+            // This check is still relevant as IDs are auto-generated but we want to ensure they remain unique after potential reordering/bugs
+            console.warn("Duplicate IDs found during save process, this shouldn't happen with auto-generated IDs unless there's a bug:", duplicateIds);
+            // alert((currentGuiTranslations.gui_alert_duplicate_ids || "Duplicate question IDs found: {ids}. IDs must be unique.").replace('{ids}', duplicateIds.join(', ')));
+            // Might choose to proceed or show a more generic error if this occurs, as user cannot fix it.
         }
+
         if (window.pywebview && window.pywebview.api.save_questions) {
             window.pywebview.api.save_questions(updatedQuestions).then(success => {
                 if (success) {
@@ -281,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
              alert("Error: UI cannot connect to Python to save questions.");
         }
     });
+
 
     // --- General Settings Modal Logic ---
     window.openSettingsTab = function(evt, tabName) {
@@ -308,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 currentFetchedSettings = settings || {};
                 populateAllSettingsForm(currentFetchedSettings);
                 uiElements.settingsModal.style.display = 'flex';
-                if (uiElements.basicSettingsTabButton) { // Open Basic tab by default
+                if (uiElements.basicSettingsTabButton) {
                     uiElements.basicSettingsTabButton.click();
                 }
             }).catch(err => {
@@ -326,27 +328,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function populateAllSettingsForm(settings) {
         // Basic Settings Tab
-        uiElements.settingsModalLogLinesInput.value = currentMaxLogLines; // Uses current GUI state for log lines
-        uiElements.settingsModalDarkModeToggle.checked = document.body.classList.contains('dark-mode'); // Uses current theme
+        uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
+        uiElements.settingsModalDarkModeToggle.checked = document.body.classList.contains('dark-mode');
         uiElements.settingsModalLangToggle.checked = (settings.DEFAULT_LANG === 'ru');
-        uiElements.settingsOverrideUserLangToggle.checked = settings.OVERRIDE_USER_LANG || false;
+        uiElements.settingsOverrideUserLangToggle.checked = settings.OVERRIDE_USER_LANG === undefined ? true : settings.OVERRIDE_USER_LANG;
+
 
         // PDF Settings Tab
         const pdfSettings = settings.PDF_SETTINGS || {};
         uiElements.pdfFontFilePathInput.value = settings.FONT_FILE_PATH || "fonts/DejaVuSans.ttf";
         uiElements.pdfFontNameRegisteredInput.value = pdfSettings.font_name_registered || "CustomUnicodeFont";
-        uiElements.pdfPageWidthMmInput.value = pdfSettings.page_width_mm || 210;
-        uiElements.pdfPageHeightMmInput.value = pdfSettings.page_height_mm || 297;
-        uiElements.pdfMarginMmInput.value = pdfSettings.margin_mm || 15;
-        uiElements.pdfPhotoWidthMmInput.value = pdfSettings.photo_width_mm || 80;
+        uiElements.pdfPageWidthMmInput.value = pdfSettings.page_width_mm === undefined ? 210 : pdfSettings.page_width_mm;
+        uiElements.pdfPageHeightMmInput.value = pdfSettings.page_height_mm === undefined ? 297 : pdfSettings.page_height_mm;
+        uiElements.pdfMarginMmInput.value = pdfSettings.margin_mm === undefined ? 15 : pdfSettings.margin_mm;
+        uiElements.pdfPhotoWidthMmInput.value = pdfSettings.photo_width_mm === undefined ? 80 : pdfSettings.photo_width_mm;
         uiElements.pdfPhotoPositionSelect.value = pdfSettings.photo_position || "top_right";
-        uiElements.pdfTitleFontSizeInput.value = pdfSettings.title_font_size || 16;
-        uiElements.pdfHeaderFontSizeInput.value = pdfSettings.header_font_size || 10;
-        uiElements.pdfQuestionFontSizeInput.value = pdfSettings.question_font_size || 12;
-        uiElements.pdfAnswerFontSizeInput.value = pdfSettings.answer_font_size || 10;
+        uiElements.pdfTitleFontSizeInput.value = pdfSettings.title_font_size === undefined ? 16 : pdfSettings.title_font_size;
+        uiElements.pdfHeaderFontSizeInput.value = pdfSettings.header_font_size === undefined ? 10 : pdfSettings.header_font_size;
+        uiElements.pdfQuestionFontSizeInput.value = pdfSettings.question_font_size === undefined ? 12 : pdfSettings.question_font_size;
+        uiElements.pdfAnswerFontSizeInput.value = pdfSettings.answer_font_size === undefined ? 10 : pdfSettings.answer_font_size;
         uiElements.pdfQuestionBoldCheckbox.checked = typeof pdfSettings.question_bold === 'boolean' ? pdfSettings.question_bold : true;
-        uiElements.pdfAppPhotoNumbInput.value = settings.APPLICATION_PHOTO_NUMB !== undefined ? settings.APPLICATION_PHOTO_NUMB : 1;
-        uiElements.pdfSendToAdminsToggle.checked = settings.SEND_PDF_TO_ADMINS || false;
+        uiElements.pdfAppPhotoNumbInput.value = settings.APPLICATION_PHOTO_NUMB === undefined ? 1 : settings.APPLICATION_PHOTO_NUMB;
+        uiElements.pdfSendToAdminsToggle.checked = settings.SEND_PDF_TO_ADMINS === undefined ? true : settings.SEND_PDF_TO_ADMINS;
+
 
         // Admin Settings Tab
         uiElements.adminBotTokenInput.value = settings.BOT_TOKEN || "";
@@ -357,131 +361,119 @@ document.addEventListener('DOMContentLoaded', function () {
     uiElements.cancelAllSettingsButton.addEventListener('click', closeSettingsModal);
 
     uiElements.saveAllSettingsButton.addEventListener('click', () => {
-        // 1. Handle UI-only or specific API settings first
-        // Log Lines
         const newMaxLogs = parseInt(uiElements.settingsModalLogLinesInput.value, 10);
         if (!isNaN(newMaxLogs) && newMaxLogs >= 10 && newMaxLogs <= 1000) {
-            if (newMaxLogs !== currentMaxLogLines) { // Only call if changed
+            if (newMaxLogs !== currentMaxLogLines) {
                  if (window.pywebview && window.pywebview.api.set_max_log_lines_from_ui) {
                     window.pywebview.api.set_max_log_lines_from_ui(newMaxLogs.toString());
                 }
             }
-        } else { // If invalid, reset input to currentMaxLogLines to avoid confusion
+        } else {
             uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
         }
 
-        // Dark Mode
         const newIsDark = uiElements.settingsModalDarkModeToggle.checked;
         if (newIsDark !== document.body.classList.contains('dark-mode')) {
             applyTheme(newIsDark);
             localStorage.setItem('darkMode', newIsDark.toString());
         }
 
-        // System Language
         const newLang = uiElements.settingsModalLangToggle.checked ? 'ru' : 'en';
-        // Check if language actually changed compared to fetched settings before calling API
+        let languageChangePromise = Promise.resolve(); // Default to resolved promise
         if (newLang !== currentFetchedSettings.DEFAULT_LANG) {
             if (window.pywebview && window.pywebview.api.set_system_language) {
-                window.pywebview.api.set_system_language(newLang).then(response => {
+                languageChangePromise = window.pywebview.api.set_system_language(newLang).then(response => {
                     if (response && response.translations) applyGuiTranslations(response.translations);
                     if (response && response.new_lang) {
-                        currentFetchedSettings.DEFAULT_LANG = response.new_lang; // Update our reference
-                         setSystemLanguageToggleState(response.new_lang); // Ensure toggle is correct
+                        currentFetchedSettings.DEFAULT_LANG = response.new_lang;
+                         setSystemLanguageToggleState(response.new_lang);
                     }
                 }).catch(err => console.error("Error setting system language from modal:", err));
             }
         }
+        
+        // Wait for language change to potentially complete before collecting other settings
+        languageChangePromise.then(() => {
+            const settingsToSave = {
+                OVERRIDE_USER_LANG: uiElements.settingsOverrideUserLangToggle.checked,
+                APPLICATION_PHOTO_NUMB: parseInt(uiElements.pdfAppPhotoNumbInput.value, 10),
+                SEND_PDF_TO_ADMINS: uiElements.pdfSendToAdminsToggle.checked,
+                FONT_FILE_PATH: uiElements.pdfFontFilePathInput.value.trim(),
+                PDF_SETTINGS: {
+                    font_name_registered: uiElements.pdfFontNameRegisteredInput.value.trim(),
+                    page_width_mm: parseFloat(uiElements.pdfPageWidthMmInput.value),
+                    page_height_mm: parseFloat(uiElements.pdfPageHeightMmInput.value),
+                    margin_mm: parseFloat(uiElements.pdfMarginMmInput.value),
+                    photo_width_mm: parseFloat(uiElements.pdfPhotoWidthMmInput.value),
+                    photo_position: uiElements.pdfPhotoPositionSelect.value,
+                    title_font_size: parseInt(uiElements.pdfTitleFontSizeInput.value, 10),
+                    header_font_size: parseInt(uiElements.pdfHeaderFontSizeInput.value, 10),
+                    question_font_size: parseInt(uiElements.pdfQuestionFontSizeInput.value, 10),
+                    answer_font_size: parseInt(uiElements.pdfAnswerFontSizeInput.value, 10),
+                    question_bold: uiElements.pdfQuestionBoldCheckbox.checked
+                },
+                BOT_TOKEN: uiElements.adminBotTokenInput.value.trim(),
+                ADMIN_USER_IDS: uiElements.adminUserIdsInput.value.trim()
+            };
 
-        // 2. Prepare data for save_all_settings API call
-        const settingsToSave = {
-            OVERRIDE_USER_LANG: uiElements.settingsOverrideUserLangToggle.checked,
-            APPLICATION_PHOTO_NUMB: parseInt(uiElements.pdfAppPhotoNumbInput.value, 10),
-            SEND_PDF_TO_ADMINS: uiElements.pdfSendToAdminsToggle.checked,
-            FONT_FILE_PATH: uiElements.pdfFontFilePathInput.value.trim(),
-            PDF_SETTINGS: {
-                font_name_registered: uiElements.pdfFontNameRegisteredInput.value.trim(),
-                page_width_mm: parseFloat(uiElements.pdfPageWidthMmInput.value),
-                page_height_mm: parseFloat(uiElements.pdfPageHeightMmInput.value),
-                margin_mm: parseFloat(uiElements.pdfMarginMmInput.value),
-                photo_width_mm: parseFloat(uiElements.pdfPhotoWidthMmInput.value),
-                photo_position: uiElements.pdfPhotoPositionSelect.value,
-                title_font_size: parseInt(uiElements.pdfTitleFontSizeInput.value, 10),
-                header_font_size: parseInt(uiElements.pdfHeaderFontSizeInput.value, 10),
-                question_font_size: parseInt(uiElements.pdfQuestionFontSizeInput.value, 10),
-                answer_font_size: parseInt(uiElements.pdfAnswerFontSizeInput.value, 10),
-                question_bold: uiElements.pdfQuestionBoldCheckbox.checked
-            },
-            BOT_TOKEN: uiElements.adminBotTokenInput.value.trim(),
-            ADMIN_USER_IDS: uiElements.adminUserIdsInput.value.trim()
-        };
+            if (!settingsToSave.BOT_TOKEN) {
+                alert(currentGuiTranslations.gui_alert_bot_token_empty || "Bot Token cannot be empty.");
+                uiElements.adminBotTokenInput.focus(); return;
+            }
+            if (isNaN(settingsToSave.APPLICATION_PHOTO_NUMB) || settingsToSave.APPLICATION_PHOTO_NUMB < 0) {
+                alert(currentGuiTranslations.gui_alert_invalid_photo_numb || "Number of photos must be a non-negative number.");
+                uiElements.pdfAppPhotoNumbInput.focus(); return;
+            }
+             if (!settingsToSave.FONT_FILE_PATH) {
+                alert(currentGuiTranslations.gui_alert_pdf_font_paths_empty || "Font File Path cannot be empty.");
+                uiElements.pdfFontFilePathInput.focus(); return;
+            }
+            if (!settingsToSave.PDF_SETTINGS.font_name_registered) {
+                alert(currentGuiTranslations.gui_alert_pdf_font_paths_empty || "Registered Font Name cannot be empty.");
+                uiElements.pdfFontNameRegisteredInput.focus(); return;
+            }
 
-        // Validation
-        if (!settingsToSave.BOT_TOKEN) {
-            alert(currentGuiTranslations.gui_alert_bot_token_empty || "Bot Token cannot be empty.");
-            uiElements.adminBotTokenInput.focus(); // Focus the problematic field
-            return;
-        }
-        if (isNaN(settingsToSave.APPLICATION_PHOTO_NUMB) || settingsToSave.APPLICATION_PHOTO_NUMB < 0) {
-            alert(currentGuiTranslations.gui_alert_invalid_photo_numb || "Number of photos must be a non-negative number.");
-            uiElements.pdfAppPhotoNumbInput.focus();
-            return;
-        }
-         if (!settingsToSave.FONT_FILE_PATH) {
-            alert(currentGuiTranslations.gui_alert_pdf_font_paths_empty || "Font File Path cannot be empty.");
-            uiElements.pdfFontFilePathInput.focus();
-            return;
-        }
-        if (!settingsToSave.PDF_SETTINGS.font_name_registered) {
-            alert(currentGuiTranslations.gui_alert_pdf_font_paths_empty || "Registered Font Name cannot be empty."); // Re-using key, make more specific if needed
-            uiElements.pdfFontNameRegisteredInput.focus();
-            return;
-        }
-
-
-        // 3. Call the API to save the rest
-        if (window.pywebview && window.pywebview.api.save_all_settings) {
-            window.pywebview.api.save_all_settings(settingsToSave).then(success => {
-                if (success) {
-                    alert(currentGuiTranslations.gui_alert_settings_saved || "Settings saved successfully! Some changes may require a bot restart.");
-                    closeSettingsModal();
-                } else {
-                    // Python side should log specifics. This is a general failure message.
-                    alert(currentGuiTranslations.gui_alert_settings_save_failed || "Failed to save some settings. Check logs for details.");
-                }
-            }).catch(err => {
-                alert((currentGuiTranslations.gui_alert_settings_save_error || "Error saving settings: {error}").replace('{error}', String(err)));
-            });
-        } else {
-            alert("Error: UI cannot connect to Python to save settings.");
-        }
+            if (window.pywebview && window.pywebview.api.save_all_settings) {
+                window.pywebview.api.save_all_settings(settingsToSave).then(success => {
+                    if (success) {
+                        alert(currentGuiTranslations.gui_alert_settings_saved || "Settings saved successfully! Some changes may require a bot restart.");
+                        closeSettingsModal();
+                    } else {
+                        alert(currentGuiTranslations.gui_alert_settings_save_failed || "Failed to save some settings. Check logs for details.");
+                    }
+                }).catch(err => {
+                    alert((currentGuiTranslations.gui_alert_settings_save_error || "Error saving settings: {error}").replace('{error}', String(err)));
+                });
+            } else {
+                alert("Error: UI cannot connect to Python to save settings.");
+            }
+        });
     });
 
 
-    window.initializeGui = function(config) { // Called by Python when frontend is ready
+    window.initializeGui = function(config) {
         console.log("Initializing GUI with config:", config);
         if (config.guiTranslations) applyGuiTranslations(config.guiTranslations);
-        if (config.currentLang) setSystemLanguageToggleState(config.currentLang); // For the modal toggle
+        if (config.currentLang) {
+             currentFetchedSettings.DEFAULT_LANG = config.currentLang; // Store initial lang
+             setSystemLanguageToggleState(config.currentLang);
+        }
 
         currentMaxLogLines = config.maxLogLines || 100;
-        // uiElements.logLinesInput.value = currentMaxLogLines; // Old main panel input removed
         if(uiElements.settingsModalLogLinesInput) uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
-
 
         if (config.initialLogs && config.initialLogs.length > 0) addBatchLogMessages(config.initialLogs);
 
         const savedDarkMode = localStorage.getItem('darkMode');
-        // Default to dark mode if no preference saved, or if preference is explicitly 'true'
         const isDark = (savedDarkMode !== null) ? (savedDarkMode === 'true') : true;
         if(uiElements.settingsModalDarkModeToggle) uiElements.settingsModalDarkModeToggle.checked = isDark;
         applyTheme(isDark);
     };
 
-    // Signal Python that the frontend is ready
     window.addEventListener('pywebviewready', function () {
         if (window.pywebview && window.pywebview.api.frontend_is_ready) {
             window.pywebview.api.frontend_is_ready();
         } else {
-            // Fallback if API is not available
             if(uiElements.statusDisplayLabelPrefix) uiElements.statusDisplayLabelPrefix.textContent = "Status: ";
             if(uiElements.statusMessageContent) uiElements.statusMessageContent.textContent = "Error: UI failed to connect to Python.";
             const statusDisplayDiv = document.getElementById('status-display');
