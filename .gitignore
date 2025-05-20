@@ -1,0 +1,10 @@
+__pycache__/
+settings.json
+applications/
+venv
+temp_photos/
+codebase/
+codecollect*
+.spec
+dist
+build

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Bot Control</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-mode"> <!-- Default to dark -->
+    <div class="app-container">
+        <div class="left-panel">
+            <img id="logo" src="logo_placeholder.png" alt="Logo" class="logo-placeholder">
+            <div id="status-display" class="status-display">Status: Initializing...</div>
+            <button id="start-button" class="neumorphic-button">Start Bot</button>
+            <button id="stop-button" class="neumorphic-button" disabled>Stop Bot</button>
+            <button id="open-applications-folder-button" class="neumorphic-button">Open Applications Folder</button> <!-- New Button -->
+            
+            <div class="settings-group">
+                <div class="settings-row">
+                    <label for="log-lines-input" class="settings-label">Log Lines:</label>
+                    <input type="number" id="log-lines-input" class="neumorphic-input" value="100" min="10" max="1000" step="10">
+                </div>
+                <div class="settings-row">
+                    <label for="dark-mode-toggle" class="settings-label">Dark Theme</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="dark-mode-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div id="log-output" class="log-area">
+                <!-- Log messages will be appended here -->
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
