@@ -1,11 +1,10 @@
-# telegram_application_bot/handlers/command_handlers.py
+# application_bot/handlers/command_handlers.py
 import logging
 from telegram import Update, ReplyKeyboardRemove, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 
-# MODIFIED IMPORTS:
 from application_bot import utils 
-from application_bot.utils import get_text
+from application_bot.utils import get_text # utils.LANGUAGES_CACHE will be used by get_text
 from application_bot.constants import (
     STATE_CONFIRM_GLOBAL_CANCEL,
     STATE_ASKING_QUESTIONS,
@@ -21,7 +20,8 @@ def get_user_lang(context: ContextTypes.DEFAULT_TYPE, update: Update = None) -> 
         return context.user_data["user_lang"]
 
     determined_lang = None
-    override_user_lang = utils.SETTINGS.get("OVERRIDE_USER_LANG", True) if utils.SETTINGS else True # MODIFIED
+    # SETTINGS should be loaded by now, otherwise get_text will handle it or use defaults
+    override_user_lang = utils.SETTINGS.get("OVERRIDE_USER_LANG", True) if utils.SETTINGS else True
 
     if not override_user_lang:
         if update and update.effective_user and update.effective_user.language_code:
@@ -29,28 +29,30 @@ def get_user_lang(context: ContextTypes.DEFAULT_TYPE, update: Update = None) -> 
             user_tg_lang_short = user_tg_lang_full.split('-')[0]
             logger.debug(f"User {user_id}: OVERRIDE_USER_LANG is false. Telegram language_code: '{user_tg_lang_full}' (short: '{user_tg_lang_short}')")
 
-            if utils.SETTINGS and "LANGUAGES" in utils.SETTINGS: # MODIFIED
-                if user_tg_lang_short in utils.SETTINGS["LANGUAGES"]: # MODIFIED
+            # Check against utils.LANGUAGES_CACHE now
+            if utils.LANGUAGES_CACHE:
+                if user_tg_lang_short in utils.LANGUAGES_CACHE:
                     determined_lang = user_tg_lang_short
                     logger.info(f"User {user_id}: Detected language '{determined_lang}' from Telegram client, matching available languages.")
                 else:
-                    logger.debug(f"User {user_id}: Telegram language '{user_tg_lang_short}' not in available bot languages: {list(utils.SETTINGS['LANGUAGES'].keys())}.") # MODIFIED
+                    logger.debug(f"User {user_id}: Telegram language '{user_tg_lang_short}' not in available bot languages: {list(utils.LANGUAGES_CACHE.keys())}.")
             else:
-                logger.warning(f"User {user_id}: SETTINGS or SETTINGS['LANGUAGES'] not available for Telegram language detection.")
+                logger.warning(f"User {user_id}: utils.LANGUAGES_CACHE not available for Telegram language detection.")
         elif update is None or update.effective_user is None or not update.effective_user.language_code:
              logger.debug(f"User {user_id}: OVERRIDE_USER_LANG is false, but no Telegram client language info available in update.")
     else: 
-        logger.info(f"User {user_id}: OVERRIDE_USER_LANG is true. Will use DEFAULT_LANG from settings.")
+        logger.debug(f"User {user_id}: OVERRIDE_USER_LANG is true. Will use DEFAULT_LANG from settings.") # Changed info to debug as it's less critical now
 
     if not determined_lang:
         source_info = "as primary due to OVERRIDE_USER_LANG" if override_user_lang else "as fallback"
-        if utils.SETTINGS and "DEFAULT_LANG" in utils.SETTINGS: # MODIFIED
-            default_lang_from_settings = utils.SETTINGS["DEFAULT_LANG"] # MODIFIED
-            if utils.SETTINGS.get("LANGUAGES", {}).get(default_lang_from_settings): # MODIFIED
+        if utils.SETTINGS and "DEFAULT_LANG" in utils.SETTINGS:
+            default_lang_from_settings = utils.SETTINGS["DEFAULT_LANG"]
+            # Check against utils.LANGUAGES_CACHE
+            if utils.LANGUAGES_CACHE and utils.LANGUAGES_CACHE.get(default_lang_from_settings):
                 determined_lang = default_lang_from_settings
                 logger.info(f"User {user_id}: Using DEFAULT_LANG '{determined_lang}' from settings {source_info}.")
             else:
-                logger.warning(f"User {user_id}: DEFAULT_LANG '{default_lang_from_settings}' from settings is not a configured language in LANGUAGES. Falling back to 'en'.")
+                logger.warning(f"User {user_id}: DEFAULT_LANG '{default_lang_from_settings}' from settings is not a configured language. Falling back to 'en'.")
                 determined_lang = "en" 
         else:
             logger.warning(f"User {user_id}: SETTINGS or SETTINGS['DEFAULT_LANG'] not available. Falling back to 'en'.")
