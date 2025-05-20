@@ -9,17 +9,30 @@ document.addEventListener('DOMContentLoaded', function () {
         logOutput: document.getElementById('log-output'),
         logLinesInput: document.getElementById('log-lines-input'),
         darkModeToggle: document.getElementById('dark-mode-toggle'),
-        langToggle: document.getElementById('lang-toggle'), // New
+        langToggle: document.getElementById('lang-toggle'),
         // Labels to translate
         guiTitleText: document.getElementById('gui_title_text'), // For document.title
         guiLogLinesLabel: document.getElementById('gui_log_lines_label'),
         guiDarkThemeLabel: document.getElementById('gui_dark_theme_label'),
-        guiLangToggleLabel: document.getElementById('gui_lang_toggle_label')
+        guiLangToggleLabel: document.getElementById('gui_lang_toggle_label'),
+        logoImage: document.getElementById('logo') // Added logo element
     };
 
     let currentMaxLogLines = 100;
     let currentGuiTranslations = {}; // To store current GUI strings
     let statusPrefix = "Status: "; // Default, will be updated by localization
+
+    // --- Cache-bust the logo ---
+    if (uiElements.logoImage) {
+        const originalSrc = uiElements.logoImage.getAttribute('src');
+        if (originalSrc) {
+            // Append a timestamp to ensure the browser/webview fetches the latest version
+            // This removes any existing query string before adding the new one
+            const basePath = originalSrc.split('?')[0];
+            uiElements.logoImage.src = `${basePath}?t=${new Date().getTime()}`;
+            console.log("Updated logo src to (cache-busted):", uiElements.logoImage.src);
+        }
+    }
 
     // --- Theme Handling ---
     function applyTheme(isDark) {
@@ -46,10 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
         uiElements.guiDarkThemeLabel.textContent = translations.gui_dark_theme_label || "Dark Theme";
         uiElements.guiLangToggleLabel.textContent = translations.gui_lang_toggle_label || "System Language (En/Ru):";
         // Update current status message with new prefix if needed
-        const currentStatusText = uiElements.statusMessageContent.textContent;
-        if (currentStatusText) { //Re-apply status with potentially new general prefix
-             uiElements.statusMessageContent.textContent = currentStatusText; // This line is a bit redundant, real update happens in updateStatus
-        }
+        // The status message itself will be updated by updateStatus when called from Python
     };
 
     uiElements.langToggle.addEventListener('change', function() {
@@ -58,10 +68,6 @@ document.addEventListener('DOMContentLoaded', function () {
             window.pywebview.api.set_system_language(newLang).then(response => {
                 if (response && response.translations) {
                     applyGuiTranslations(response.translations);
-                    // Update status potentially using new language keys
-                    // This assumes current status message needs re-translation or re-prefixing
-                    // The Python side's update_status should handle sending correctly localized messages
-                    // However, the generic prefix is part of the GUI.
                 }
                 if (response && response.new_lang) {
                      uiElements.langToggle.checked = (response.new_lang === 'ru');
@@ -83,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
             window.pywebview.api.start_bot_action();
         } else {
             console.error("PyWebview API not available for start_bot_action");
-            updateStatus("gui_status_error_ui_disconnected", true, true); // Use key
+            updateStatus("gui_status_error_ui_disconnected", true, null, false); // Use key, isRunning is null for error state
         }
     });
 
@@ -92,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
             window.pywebview.api.stop_bot_action();
         } else {
             console.error("PyWebview API not available for stop_bot_action");
-            updateStatus("gui_status_error_ui_disconnected", true, true); // Use key
+            updateStatus("gui_status_error_ui_disconnected", true, null, false); // Use key
         }
     });
 
@@ -108,9 +114,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const newMax = parseInt(this.value, 10);
         if (!isNaN(newMax) && newMax >= 10 && newMax <= 1000) {
             if (window.pywebview && window.pywebview.api && window.pywebview.api.set_max_log_lines_from_ui) {
-                window.pywebview.api.set_max_log_lines_from_ui(newMax);
+                window.pywebview.api.set_max_log_lines_from_ui(newMax.toString()); // Pass as string
             }
         } else {
+            // Revert to currentMaxLogLines if input is invalid
             this.value = currentMaxLogLines; 
         }
     });
@@ -121,26 +128,25 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isRawText) {
             messageToDisplay = messageKeyOrText;
         } else {
+            // Use currentGuiTranslations which is updated by applyGuiTranslations
             messageToDisplay = currentGuiTranslations[messageKeyOrText] || messageKeyOrText.replace(/_/g, ' '); // Fallback
         }
         
         uiElements.statusMessageContent.textContent = messageToDisplay;
-        const statusDisplayDiv = document.getElementById('status-display'); // Get parent div for class manipulation
+        const statusDisplayDiv = document.getElementById('status-display');
         statusDisplayDiv.classList.remove('running', 'stopped', 'error', 'intermediate');
 
-        if (isRunning === true) {
+        if (isError) { // Error takes precedence for styling if true
+            statusDisplayDiv.classList.add('error');
+        } else if (isRunning === true) {
             statusDisplayDiv.classList.add('running');
         } else if (isRunning === false) {
             statusDisplayDiv.classList.add('stopped');
-        } else if (isRunning === null && isError) { // Error takes precedence if isRunning is not explicit
-            statusDisplayDiv.classList.add('error');
         } else if (isRunning === null) { // Intermediate state (e.g. "Starting...", "Stopping...")
              statusDisplayDiv.classList.add('intermediate');
         }
-         // If no class set, it's a general status
     };
     
-    // addLogMessage, addBatchLogMessages, setButtonState, clearLogs remain similar
     window.addBatchLogMessages = function(messagesArray) {
         const fragment = document.createDocumentFragment();
         messagesArray.forEach(msg => {
@@ -150,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         uiElements.logOutput.appendChild(fragment);
 
+        // Trim logs if over limit
         while (uiElements.logOutput.children.length > currentMaxLogLines) {
             uiElements.logOutput.removeChild(uiElements.logOutput.firstChild);
         }
@@ -157,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.setButtonState = function (buttonId, enabled) {
-        const button = document.getElementById(buttonId); // Assuming buttonId is 'start-button' or 'stop-button'
+        const button = document.getElementById(buttonId);
         if (button) {
             button.disabled = !enabled;
         }
@@ -165,11 +172,11 @@ document.addEventListener('DOMContentLoaded', function () {
     
     window.setLogLinesConfig = function(maxLines, currentLogs = []) {
         currentMaxLogLines = parseInt(maxLines, 10);
-        uiElements.logLinesInput.value = currentMaxLogLines;
+        uiElements.logLinesInput.value = currentMaxLogLines; // Update input field
         
         clearLogs();
         if (currentLogs && currentLogs.length > 0) {
-            addBatchLogMessages(currentLogs);
+            addBatchLogMessages(currentLogs); // Add back current logs, respecting new limit
         }
     };
 
@@ -180,11 +187,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Initialization called by Python after pywebviewready ---
     window.initializeGui = function(config) {
         console.log("Initializing GUI with config:", config);
-        applyGuiTranslations(config.guiTranslations || {});
-        setSystemLanguageToggleState(config.currentLang || 'en');
+        
+        if (config.guiTranslations) {
+            applyGuiTranslations(config.guiTranslations);
+        }
+        if (config.currentLang) {
+            setSystemLanguageToggleState(config.currentLang);
+        }
         
         currentMaxLogLines = config.maxLogLines || 100;
         uiElements.logLinesInput.value = currentMaxLogLines;
+
         if (config.initialLogs && config.initialLogs.length > 0) {
             addBatchLogMessages(config.initialLogs);
         }
@@ -195,10 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
         uiElements.darkModeToggle.checked = isDark;
         applyTheme(isDark);
 
-        // Initial status message (Python's BotGUI.initial_status_message needs to be a key)
-        // BotGUI will call updateStatus itself after this initialization.
-        // updateStatus(config.initialStatusKey || "gui_status_initializing", config.initialStatusIsError, config.initialStatusIsRunning);
-        // This part is tricky, BotGUI calls updateStatus separately in on_frontend_ready. Let Python handle it.
+        // Python side will call updateStatus after this to set the initial status message
     };
 
     // --- PyWebview Initialization ---
@@ -208,7 +218,9 @@ document.addEventListener('DOMContentLoaded', function () {
             window.pywebview.api.frontend_is_ready();
         } else {
             console.error("PyWebview API not available for frontend_is_ready call.");
-            uiElements.statusMessageContent.textContent = "Error: UI failed to connect";
+            // Fallback status if API connection fails
+            uiElements.statusDisplayLabelPrefix.textContent = "Status: ";
+            uiElements.statusMessageContent.textContent = "Error: UI failed to connect to Python.";
             const statusDisplayDiv = document.getElementById('status-display');
             statusDisplayDiv.classList.add('error');
         }

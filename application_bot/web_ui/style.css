@@ -44,14 +44,11 @@ body {
 }
 
 .logo-placeholder {
-    width: 150px; /* Adjust as needed */
-    height: auto; /* Maintain aspect ratio */
+    width: 200px;         /* Set desired width */
+    height: 100px;        /* Set desired height */
+    object-fit: contain;  /* Adjust as needed: contain, cover, fill, scale-down */
     margin-bottom: 10px;
-    /* Basic styling, can be enhanced */
-    border: 1px dashed #888; /* Placeholder visual */
-    padding: 10px;
-    text-align: center;
-    font-size: 10px;
+    /* border: 1px dashed #888; /* Dotted line removed */
 }
 
 
@@ -171,6 +168,7 @@ body {
 .status-display.running { background-color: #c8e6c9; color: #2e7d32; } /* Greenish */
 .status-display.stopped { background-color: #ffcdd2; color: #c62828; } /* Reddish */
 .status-display.error { background-color: #ffcc80; color: #ef6c00; } /* Orangish */
+.status-display.intermediate { background-color: #fff59d; color: #795548; } /* Yellowish for intermediate */
 
 
 .neumorphic-button {
@@ -220,7 +218,7 @@ input:checked + .toggle-slider:before { background: linear-gradient(145deg, #d9c
 .log-area::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
 .log-area::-webkit-scrollbar-thumb { background-color: #c5bdab; border-radius: 10px; }
 .log-area::-webkit-scrollbar-thumb:hover { background-color: #b9b1a0; }
-.status-display.intermediate { background-color: #fff59d; color: #795548; } /* Yellowish for intermediate */
+
 
 /* Dark Mode */
 body.dark-mode {
@@ -236,6 +234,7 @@ body.dark-mode {
 .dark-mode .status-display.running { background-color: #38593a; color: #a5d6a7; }
 .dark-mode .status-display.stopped { background-color: #733438; color: #ef9a9a; }
 .dark-mode .status-display.error { background-color: #78502a; color: #ffcc80; }
+.dark-mode .status-display.intermediate { background-color: #4a463a; color: #fff59d; } /* Darker Yellowish */
 
 
 .dark-mode .neumorphic-button {
@@ -284,7 +283,6 @@ body.dark-mode {
 .dark-mode .log-area::-webkit-scrollbar-thumb:hover { background-color: #6a6a6a; }
 
 .dark-mode .logo-placeholder {
-    border-color: #555;
-    filter: invert(0.8); /* Simple dark mode for placeholder */
+    filter: invert(0.8); /* Removed or commented out this filter for actual logo */
+    /* border-color: #555; /* If border was kept, adjust its color for dark mode */
 }
-.dark-mode .status-display.intermediate { background-color: #4a463a; color: #fff59d; } /* Darker Yellowish */

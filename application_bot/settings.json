@@ -15,7 +15,7 @@
     "HTTP_WRITE_TIMEOUT": 30.0,
     "HTTP_POOL_TIMEOUT": 15.0,
     "OVERRIDE_USER_LANG": true,
-    "DEFAULT_LANG": "en",
+    "DEFAULT_LANG": "ru",
     "LANGUAGES": {
         "ru": {
             "start_message": "Привет! 👋 Это бот для подачи заявок.\nИспользуйте /apply для начала.",
