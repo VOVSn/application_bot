@@ -1,14 +1,14 @@
-/* application_bot/web_ui/style.css */
+/* application_bot/web_ui/memphis.css */
 
 /* --- START: Core Layout CSS (Shared Base) --- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Noto Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* font-family is set by memphis-theme body */
 }
 
-body {
+body { /* Base body from core, theming class will override specifics */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -58,16 +58,16 @@ body {
     font-size: 16px;
     font-weight: 500;
     padding: 10px 20px; /* Vertical 10px, Horizontal 20px (matches button) */
-    border-radius: 8px;
+    border-radius: 8px; /* Default, can be overridden by theme */
     text-align: center;
     width: 100%;
     margin-bottom: 5px;
     box-sizing: border-box; /* Crucial for width calculation */
 }
 
-.neumorphic-button {
+.neumorphic-button { /* Base button style, theme will override visuals */
     padding: 12px 20px; /* Vertical 12px, Horizontal 20px */
-    border-radius: 12px;
+    border-radius: 12px; /* Default, can be overridden */
     border: none;
     font-weight: 500;
     font-size: 15px;
@@ -91,9 +91,9 @@ body {
 .log-area {
     flex-grow: 1;
     padding: 15px;
-    border-radius: 15px;
+    border-radius: 15px; /* Default, can be overridden */
     overflow-y: auto;
-    font-family: 'Courier New', Courier, monospace;
+    /* font-family is set by memphis-theme body or specific log rule */
     font-size: 13px;
     line-height: 1.4;
     white-space: pre-wrap;
@@ -126,7 +126,7 @@ body {
     display: flex; flex-direction: column;
     gap: 15px; overflow: hidden;
     padding: 25px;
-    border-radius: 15px;
+    border-radius: 15px; /* Default, theme can override */
 }
 .modal-content.settings-modal-content {
     max-width: 780px; /* Adjusted for preventing horizontal scroll */
@@ -141,7 +141,6 @@ body {
     padding: 8px 10px; border-radius: 8px; font-size: 14px;
 }
 #settings-modal-theme-select { width: auto; min-width: 200px; }
-
 
 .questions-table-container { flex-grow: 1; overflow-y: auto; border-radius: 8px; min-height: 150px; border: 1px solid; }
 #questions-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -193,126 +192,154 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 /* --- END: Core Layout CSS --- */
 
 
-/* --- START: Light Mode Specifics --- */
-body.light-mode { background-color: #e8e3d9; color: #5a5346; }
-.light-mode .left-panel, .light-mode .right-panel { background-color: #e8e3d9; }
-.light-mode .settings-group-placeholder { border-top-color: #d1c9bd; }
-.light-mode .status-display { background-color: #dcd7cd; color: #5a5346; }
-.light-mode .status-display.running { background-color: #c8e6c9; color: #2e7d32; }
-.light-mode .status-display.stopped { background-color: #ffcdd2; color: #c62828; }
-.light-mode .status-display.error { background-color: #ffcc80; color: #ef6c00; }
-.light-mode .status-display.intermediate { background-color: #fff59d; color: #795548; }
-.light-mode .neumorphic-button {
-    background: linear-gradient(145deg, #f0ebe1, #d4d0c7);
-    box-shadow: 5px 5px 10px #c4c0b7, -5px -5px 10px #ffffff;
-    color: #5a5346;
+/* --- START: Memphis Theme Specific Styles --- */
+body.memphis-theme {
+    background-color: #fdfd96; /* Pastel Yellow */
+    color: #000000;
+    font-family: 'Comic Sans MS', 'Chalkduster', 'Ink Free', cursive, sans-serif !important;
 }
-.light-mode .neumorphic-button:active:not(:disabled) { box-shadow: inset 3px 3px 7px #c4c0b7, inset -3px -3px 7px #ffffff; }
-.light-mode .neumorphic-button:disabled { background: #dcd7cd; box-shadow: none; color: #a09a8f; }
 
-.light-mode #settings-modal-theme-select,
-.light-mode .neumorphic-input.modal-input {
-    background: #fff;
-    border: 1px solid #ccc;
-    box-shadow: inset 1px 1px 3px #ddd, inset -1px -1px 3px #fff;
-    color: #333;
+.memphis-theme .app-container {
+    border: 8px solid #FF69B4; /* Hot Pink */
+    box-shadow: 10px 10px 0px #00FFFF; /* Cyan hard shadow */
+    background-color: #ffffff;
 }
-.light-mode #settings-modal-theme-select:focus,
-.light-mode .neumorphic-input.modal-input:focus { border-color: #ad9d7c; outline: none; }
 
-.light-mode .toggle-slider { background: #dcd7cd; box-shadow: inset 1px 1px 3px #cbc6bd, inset -1px -1px 3px #f5f0e5; }
-.light-mode .toggle-slider:before { background: linear-gradient(145deg, #f0ebe1, #e0dbd1); box-shadow: 1px 1px 3px rgba(0,0,0,0.08); }
-.light-mode input:checked + .toggle-slider { background: linear-gradient(145deg, #d5ccb8, #c6bdaa); }
-.light-mode input:checked + .toggle-slider:before { background: linear-gradient(145deg, #d9cebc, #c8beac); }
-.light-mode .log-area {
-    background: linear-gradient(125deg, #e6e1d7, #dbd6cc);
-    box-shadow: inset 4px 4px 11px #cbc6bd, inset -4px -4px 11px #f5f0e5;
-    color: #4a4336;
+.memphis-theme .left-panel {
+    background-color: #ADD8E6; /* Light Blue */
+    border-right: 5px dashed #FFB6C1; /* Light Pink */
 }
-.light-mode .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
-.light-mode .modal-content { background-color: #f0f0f0; box-shadow: 0 5px 20px rgba(0,0,0,0.15); color: #444; }
-.light-mode .modal-content h2 { color: #333; }
-.light-mode .questions-table-container { border-color: #d1c9bd; }
-.light-mode #questions-table th, .light-mode #questions-table td { border-bottom-color: #d1c9bd; }
-.light-mode #questions-table th { background-color: #e8e3d9; }
-.light-mode .modal-button.primary { background: linear-gradient(145deg, #adc3b2, #9cb3a2); color: #2e7d32; }
-.light-mode .modal-button.primary:active:not(:disabled) { box-shadow: inset 3px 3px 7px #8ca392, inset -3px -3px 7px #bcc3c2; }
-.light-mode .tab-container { border-bottom-color: #d1c9bd; }
-.light-mode .tab-button { color: #777; }
-.light-mode .tab-button.active { color: #333; border-bottom-color: #4a80d3; }
 
-.light-mode .questions-table-container::-webkit-scrollbar-thumb,
-.light-mode .tab-content::-webkit-scrollbar-thumb,
-.light-mode .log-area::-webkit-scrollbar-thumb {
-    background-color: #c5bdab;
-    border-radius: 10px;
+.memphis-theme .right-panel {
+    background-color: #98FB98; /* Pale Green */
 }
-.light-mode .questions-table-container::-webkit-scrollbar-thumb:hover,
-.light-mode .tab-content::-webkit-scrollbar-thumb:hover,
-.light-mode .log-area::-webkit-scrollbar-thumb:hover {
-    background-color: #b9b1a0;
+
+.memphis-theme .logo-placeholder {
+    border: 3px dotted #FFD700; /* Gold */
+    padding: 5px;
+    background-color: #fff;
+    filter: none !important; /* Override dark mode filter if any */
 }
-/* --- END: Light Mode Specifics --- */
+
+.memphis-theme .neumorphic-button {
+    background-color: #FF69B4; /* Hot Pink */
+    color: #FFFFFF;
+    border: 3px solid #000000;
+    border-radius: 0; /* Sharp edges */
+    box-shadow: 5px 5px 0px #000000; /* Hard shadow */
+    font-weight: bold;
+    text-transform: uppercase;
+    /* padding: 15px 20px; */ /* Padding is from core */
+    font-family: inherit; /* Inherit from body.memphis-theme */
+}
+.memphis-theme .neumorphic-button:hover:not(:disabled) {
+    background-color: #ff85c8;
+    box-shadow: 5px 5px 0px #000000; /* Keep shadow consistent on hover */
+}
+.memphis-theme .neumorphic-button:active:not(:disabled) {
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0px #000000;
+}
+.memphis-theme .neumorphic-button:disabled {
+    background-color: #d3d3d3 !important;
+    color: #666666 !important;
+    box-shadow: none !important;
+    border-color: #a0a0a0 !important;
+    transform: none !important;
+}
+
+.memphis-theme .log-area {
+    background-color: #FFFFFF;
+    border: 4px dotted #FFD700; /* Gold */
+    color: #333333;
+    font-family: 'Courier New', Courier, monospace !important;
+    border-radius: 0;
+    padding: 10px;
+}
+.memphis-theme .log-area::-webkit-scrollbar-thumb { background-color: #FFD700; border-radius: 0; }
+.memphis-theme .log-area::-webkit-scrollbar-track { background: #fff; }
 
 
-/* --- START: Dark Mode Specifics --- */
-body.dark-mode { background-color: #3a3a3a; color: #d1d1d1; }
-.dark-mode .left-panel, .dark-mode .right-panel { background-color: #3a3a3a; }
-.dark-mode .settings-group-placeholder { border-top-color: #4f4f4f; }
-.dark-mode .status-display { background-color: #454545; color: #d1d1d1; }
-.dark-mode .status-display.running { background-color: #38593a; color: #a5d6a7; }
-.dark-mode .status-display.stopped { background-color: #733438; color: #ef9a9a; }
-.dark-mode .status-display.error { background-color: #78502a; color: #ffcc80; }
-.dark-mode .status-display.intermediate { background-color: #4a463a; color: #fff59d; }
-.dark-mode .neumorphic-button {
-    background: linear-gradient(145deg, #4f4f4f, #3e3e3e);
-    box-shadow: 5px 5px 10px #2a2a2a, -5px -5px 10px #505050;
-    color: #d1d1d1;
+.memphis-theme .status-display {
+    background-color: #00FFFF; /* Cyan */
+    color: #000000;
+    border: 3px solid #000000;
+    /* padding: 8px; */ /* Padding is from core */
+    font-weight: bold;
+    border-radius: 0;
 }
-.dark-mode .neumorphic-button:active:not(:disabled) { box-shadow: inset 3px 3px 7px #2a2a2a, inset -3px -3px 7px #505050; }
-.dark-mode .neumorphic-button:disabled { background: #454545; box-shadow: none; color: #7a7a7a; }
+.memphis-theme .status-display.running { background-color: #ADFF2F; border-color: #FF69B4; }
+.memphis-theme .status-display.stopped { background-color: #FFA07A; border-color: #000000; }
+.memphis-theme .status-display.error   { background-color: #FF4500; color: #FFFFFF; border-color: #FFFF00; }
+.memphis-theme .status-display.intermediate { background-color: #FFDAF0; border-color: #000000; }
 
-.dark-mode #settings-modal-theme-select,
-.dark-mode .neumorphic-input.modal-input {
-    background: #383838;
-    border: 1px solid #5f5f5f;
-    box-shadow: inset 1px 1px 3px #2e2e2e, inset -1px -1px 3px #424242;
-    color: #e0e0e0;
-}
-.dark-mode #settings-modal-theme-select:focus,
-.dark-mode .neumorphic-input.modal-input:focus { border-color: #888; outline: none; }
 
-.dark-mode .toggle-slider { background: #2f2f2f; box-shadow: inset 1px 1px 3px #252525, inset -1px -1px 3px #393939; }
-.dark-mode .toggle-slider:before { background: linear-gradient(145deg, #525252, #484848); box-shadow: 1px 1px 3px rgba(0,0,0,0.25); }
-.dark-mode input:checked + .toggle-slider { background: linear-gradient(145deg, #507a50, #406a40); }
-.dark-mode input:checked + .toggle-slider:before { background: linear-gradient(145deg, #608a60, #507a50); }
-.dark-mode .log-area {
-    background: linear-gradient(125deg, #3f3f3f, #353535);
-    box-shadow: inset 4px 4px 11px #2a2a2a, inset -4px -4px 11px #4a4a4a;
-    color: #c0c0c0;
+.memphis-theme .modal-overlay {
+    background-color: rgba(255, 105, 180, 0.3); /* Semi-transparent Hot Pink */
 }
-.dark-mode .logo-placeholder { filter: invert(0.8); }
-.dark-mode .modal-overlay { background-color: rgba(0, 0, 0, 0.6); }
-.dark-mode .modal-content { background-color: #4a4a4a; box-shadow: 0 5px 25px rgba(0,0,0,0.3); color: #e0e0e0; }
-.dark-mode .modal-content h2 { color: #f0f0f0; }
-.dark-mode .questions-table-container { border-color: #5f5f5f; }
-.dark-mode #questions-table th, .dark-mode #questions-table td { border-bottom-color: #5f5f5f; }
-.dark-mode #questions-table th { background-color: #424242; }
-.dark-mode .modal-button.primary { background: linear-gradient(145deg, #507a50, #406a40); color: #e0e0e0;}
-.dark-mode .modal-button.primary:active:not(:disabled) { box-shadow: inset 3px 3px 7px #305a30, inset -3px -3px 7px #609a60; }
-.dark-mode .tab-container { border-bottom-color: #5f5f5f; }
-.dark-mode .tab-button { color: #aaa; }
-.dark-mode .tab-button.active { color: #e0e0e0; border-bottom-color: #6c9ced; }
+.memphis-theme .modal-content {
+    background-color: #FFFFFF;
+    border: 6px solid #000000;
+    box-shadow: 10px 10px 0px #00FFFF, -10px -10px 0px #FF69B4; /* Dual shadow effect */
+    border-radius: 0;
+    padding: 20px;
+}
+.memphis-theme .modal-content h2 { color: #FF69B4; text-shadow: 2px 2px #00FFFF; font-weight: bold; }
 
-.dark-mode .questions-table-container::-webkit-scrollbar-thumb,
-.dark-mode .tab-content::-webkit-scrollbar-thumb,
-.dark-mode .log-area::-webkit-scrollbar-thumb {
-    background-color: #5a5a5a;
-    border-radius: 10px;
+.memphis-theme #settings-modal-theme-select,
+.memphis-theme .neumorphic-input.modal-input,
+.memphis-theme .modal-button { /* modal-button inherits from .neumorphic-button so careful with specificity */
+    border-radius: 0;
+    border: 2px solid #000;
+    box-shadow: 3px 3px 0 #cccccc;
+    font-family: inherit;
+    background-color: #fff; /* Default background for inputs/selects in modal */
+    color: #000;
 }
-.dark-mode .questions-table-container::-webkit-scrollbar-thumb:hover,
-.dark-mode .tab-content::-webkit-scrollbar-thumb:hover,
-.dark-mode .log-area::-webkit-scrollbar-thumb:hover {
-    background-color: #6a6a6a;
+/* Explicitly style modal buttons separate from general .neumorphic-button for this theme */
+.memphis-theme .modal-actions .neumorphic-button {
+    background-color: #FFD700; /* Gold */
+    color: #000;
+    font-weight: bold;
+    border: 2px solid #000; /* Consistent border for modal buttons */
+    box-shadow: 3px 3px 0 #ccc; /* Consistent shadow */
+    text-transform: none; /* Revert uppercase from general button if needed */
 }
-/* --- END: Dark Mode Specifics --- */
+.memphis-theme .modal-actions .neumorphic-button:hover:not(:disabled) { background-color: #ffec80; }
+.memphis-theme .modal-actions .neumorphic-button.primary { background-color: #00FFFF; color: #000; }
+.memphis-theme .modal-actions .neumorphic-button.primary:hover:not(:disabled) { background-color: #80ffff; }
+
+
+.memphis-theme #questions-table { border-top: 3px solid #000; }
+.memphis-theme #questions-table th, .memphis-theme #questions-table td {
+    border-bottom-color: #000;
+    border-right: 1px dashed #FFB6C1;
+}
+.memphis-theme #questions-table td:last-child, .memphis-theme #questions-table th:last-child { border-right: none; }
+.memphis-theme #questions-table th {
+    background-color: #FFFF00; /* Yellow */
+    color: #000000;
+    border-bottom: 3px solid #000000;
+    font-weight: bold;
+}
+.memphis-theme .questions-table-container {
+    border-color: #000000;
+    border-radius: 0;
+    box-shadow: 5px 5px 0px #FFB6C1;
+    background-color: #fff; /* Ensure table container background */
+}
+.memphis-theme .questions-table-container::-webkit-scrollbar-thumb { background-color: #FF69B4; border-radius: 0;}
+.memphis-theme .questions-table-container::-webkit-scrollbar-track { background: #fff; }
+
+.memphis-theme .tab-container { border-bottom-color: #000; }
+.memphis-theme .tab-button { color: #000000; font-weight: bold; }
+.memphis-theme .tab-button.active { border-bottom-color: #FF69B4; color: #FF69B4; }
+.memphis-theme .tab-content::-webkit-scrollbar-thumb { background-color: #00FFFF; border-radius: 0; }
+.memphis-theme .tab-content::-webkit-scrollbar-track { background: #fff; }
+
+
+.memphis-theme .toggle-slider { background: #FFB6C1; border: 2px solid #000; box-shadow: 2px 2px 0 #ccc; border-radius:0; }
+.memphis-theme .toggle-slider:before { background: #FFFF00; border: 1px solid #000; border-radius: 0; height: 16px; width: 16px; left: 4px; bottom: 4px;}
+.memphis-theme input:checked + .toggle-slider { background: #FF69B4; }
+.memphis-theme input:checked + .toggle-slider:before { background: #00FFFF; transform: translateX(22px); }
+/* --- END: Memphis Theme Specific Styles --- */

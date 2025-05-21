@@ -16,7 +16,7 @@
     "HTTP_WRITE_TIMEOUT": 30.0,
     "HTTP_POOL_TIMEOUT": 15.0,
     "OVERRIDE_USER_LANG": true,
-    "DEFAULT_LANG": "ru",
+    "DEFAULT_LANG": "en",
     "PDF_SETTINGS": {
         "page_width_mm": 210.0,
         "page_height_mm": 297.0,

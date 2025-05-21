@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
         stopButton: document.getElementById('stop-button'),
         openApplicationsFolderButton: document.getElementById('open-applications-folder-button'),
         editQuestionsButton: document.getElementById('edit-questions-button'),
-        editSettingsButton: document.getElementById('edit-settings-button'), // New Settings button
+        editSettingsButton: document.getElementById('edit-settings-button'),
 
         statusDisplayLabelPrefix: document.getElementById('gui_status_label_prefix'),
         statusMessageContent: document.getElementById('status-message-content'),
@@ -24,11 +24,12 @@ document.addEventListener('DOMContentLoaded', function () {
         settingsModal: document.getElementById('settings-modal'),
         saveAllSettingsButton: document.getElementById('save-all-settings-button'),
         cancelAllSettingsButton: document.getElementById('cancel-all-settings-button'),
-        basicSettingsTabButton: document.getElementById('basic-settings-tab-btn'), // To click it on open
+        basicSettingsTabButton: document.getElementById('basic-settings-tab-btn'),
 
         // Basic Settings Tab Inputs (inside modal)
         settingsModalLogLinesInput: document.getElementById('settings-modal-log-lines-input'),
-        settingsModalDarkModeToggle: document.getElementById('settings-modal-dark-mode-toggle'),
+        settingsModalThemeSelect: document.getElementById('settings-modal-theme-select'), // New theme selector
+        // settingsModalDarkModeToggle: document.getElementById('settings-modal-dark-mode-toggle'), // REMOVED
         settingsModalLangToggle: document.getElementById('settings-modal-lang-toggle'),
         settingsOverrideUserLangToggle: document.getElementById('settings-override-user-lang-toggle'),
 
@@ -51,30 +52,69 @@ document.addEventListener('DOMContentLoaded', function () {
         // Admin Settings Tab Inputs (inside modal)
         adminBotTokenInput: document.getElementById('admin-bot-token'),
         adminUserIdsInput: document.getElementById('admin-user-ids'),
+
+        // Theme Stylesheets
+        mainStyleSheet: document.getElementById('main-stylesheet'),
+        themeLinkMemphis: document.getElementById('theme-link-memphis'),
+        themeLinkAurora: document.getElementById('theme-link-aurora'),
     };
 
     let currentMaxLogLines = 100;
     let currentGuiTranslations = {};
     let statusPrefix = "Status: ";
-    let currentQuestionsData = []; // Stores the full question objects including non-editable ID
-    let currentFetchedSettings = {}; // To store settings fetched for the modal
+    let currentQuestionsData = [];
+    let currentFetchedSettings = {};
 
     if (uiElements.logoImage) {
         const originalSrc = uiElements.logoImage.getAttribute('src');
         if (originalSrc) {
-            const basePath = originalSrc.split('?')[0]; // Remove existing query params
-            uiElements.logoImage.src = `${basePath}?t=${new Date().getTime()}`; // Add new timestamp
+            const basePath = originalSrc.split('?')[0];
+            uiElements.logoImage.src = `${basePath}?t=${new Date().getTime()}`;
         }
     }
 
-    function applyTheme(isDark) {
-        document.body.classList.toggle('dark-mode', isDark);
-        document.body.classList.toggle('light-mode', !isDark);
-    }
+    function applyTheme(themeValue) {
+        // Disable all theme-specific stylesheets first
+        if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = true;
+        if (uiElements.themeLinkMemphis) uiElements.themeLinkMemphis.disabled = true;
+        if (uiElements.themeLinkAurora) uiElements.themeLinkAurora.disabled = true;
 
-    uiElements.settingsModalDarkModeToggle.addEventListener('change', function () {
-        // Theme applied on save for consistency
-    });
+        // Remove existing theme classes from body
+        document.body.className = ''; // Clear all body classes first
+
+        switch (themeValue) {
+            case 'default-dark':
+                if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = false;
+                document.body.classList.add('dark-mode');
+                break;
+            case 'default-light':
+                if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = false;
+                document.body.classList.add('light-mode');
+                break;
+            case 'memphis':
+                if (uiElements.themeLinkMemphis) uiElements.themeLinkMemphis.disabled = false;
+                document.body.classList.add('memphis-theme');
+                break;
+            case 'aurora-dreams':
+                if (uiElements.themeLinkAurora) uiElements.themeLinkAurora.disabled = false;
+                document.body.classList.add('aurora-theme');
+                break;
+            default: // Fallback to default dark
+                if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = false;
+                document.body.classList.add('dark-mode');
+                themeValue = 'default-dark'; // Ensure themeValue is set for localStorage
+                break;
+        }
+        localStorage.setItem('selectedTheme', themeValue);
+        if(uiElements.settingsModalThemeSelect) uiElements.settingsModalThemeSelect.value = themeValue;
+    }
+    
+    if (uiElements.settingsModalThemeSelect) {
+        uiElements.settingsModalThemeSelect.addEventListener('change', function () {
+            applyTheme(this.value); 
+        });
+    }
+    // REMOVED: uiElements.settingsModalDarkModeToggle event listener
 
     window.applyGuiTranslations = function(translations) {
         currentGuiTranslations = translations;
@@ -82,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (uiElements.statusDisplayLabelPrefix) uiElements.statusDisplayLabelPrefix.textContent = statusPrefix;
         if (uiElements.guiTitleText) uiElements.guiTitleText.textContent = translations.gui_title || "Application Bot Control";
         document.title = translations.gui_title || "Application Bot Control";
-
 
         document.querySelectorAll('[data-i18n-key]').forEach(el => {
             const key = el.dataset.i18nKey;
@@ -98,8 +137,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (uiElements.questionsModal.style.display === 'flex') {
-            // If questions modal is open, repopulate to update aria-label/title of delete buttons
-            // This assumes currentQuestionsData is still valid.
             populateQuestionsTable(currentQuestionsData);
         }
     };
@@ -146,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (uiElements.statusMessageContent) uiElements.statusMessageContent.textContent = messageToDisplay;
         const statusDisplayDiv = document.getElementById('status-display');
         if (statusDisplayDiv) {
-            statusDisplayDiv.className = 'status-display';
+            statusDisplayDiv.className = 'status-display'; // Clear previous status classes
             if (isError) statusDisplayDiv.classList.add('error');
             else if (isRunning === true) statusDisplayDiv.classList.add('running');
             else if (isRunning === false) statusDisplayDiv.classList.add('stopped');
@@ -183,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.clearLogs = function() { if(uiElements.logOutput) uiElements.logOutput.innerHTML = ''; };
 
-    // --- Questions Modal Logic ---
+    // --- Questions Modal Logic (remains the same) ---
     function openQuestionsModal() {
         if (window.pywebview && window.pywebview.api.get_questions) {
             window.pywebview.api.get_questions().then(questions => {
@@ -207,37 +244,35 @@ document.addEventListener('DOMContentLoaded', function () {
         uiElements.questionsTableBody.innerHTML = '';
         questions.forEach((q, index) => {
             const row = uiElements.questionsTableBody.insertRow();
-            row.dataset.originalIndex = index; // Store original index for stable ID reference
+            row.dataset.originalIndex = index; 
 
-            // ID Cell Removed
             const textCell = row.insertCell();
             textCell.innerHTML = `<input type="text" class="neumorphic-input modal-input" value="${q.text || ''}" placeholder="Question text...">`;
 
             const actionsCell = row.insertCell();
             const deleteButton = document.createElement('button');
-            deleteButton.classList.add('neumorphic-button', 'action-button', 'modal-button', 'delete-icon-btn'); // Added 'delete-icon-btn' class
+            deleteButton.classList.add('neumorphic-button', 'action-button', 'modal-button', 'delete-icon-btn'); 
             deleteButton.innerHTML = `<svg class="trash-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>`;
             
-            // For accessibility (tooltip and screen readers)
-            const deleteLabel = currentGuiTranslations.gui_modal_delete_button || 'Delete'; // Keep using translation for tooltip
+            const deleteLabel = currentGuiTranslations.gui_modal_delete_button || 'Delete'; 
             deleteButton.setAttribute('aria-label', deleteLabel);
             deleteButton.title = deleteLabel;
             
-            deleteButton.onclick = () => deleteQuestionRow(index); // index in currentQuestionsData
+            deleteButton.onclick = () => deleteQuestionRow(index); 
             actionsCell.appendChild(deleteButton);
         });
     }
 
     function deleteQuestionRow(indexInCurrentData) {
         currentQuestionsData.splice(indexInCurrentData, 1);
-        populateQuestionsTable(currentQuestionsData); // Re-render based on modified currentQuestionsData
+        populateQuestionsTable(currentQuestionsData); 
     }
 
     uiElements.editQuestionsButton.addEventListener('click', openQuestionsModal);
     uiElements.cancelQuestionsButton.addEventListener('click', closeQuestionsModal);
 
     uiElements.addQuestionButton.addEventListener('click', () => {
-        currentQuestionsData.push({ id: `new_q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, text: '' }); // More unique ID
+        currentQuestionsData.push({ id: `new_q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, text: '' }); 
         populateQuestionsTable(currentQuestionsData);
         const tableContainer = uiElements.questionsModal.querySelector('.questions-table-container');
         if (tableContainer) tableContainer.scrollTop = tableContainer.scrollHeight;
@@ -250,10 +285,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         for (let i = 0; i < rows.length; i++) {
             const originalIndex = parseInt(rows[i].dataset.originalIndex, 10);
-            // Retrieve the original ID from our currentQuestionsData array, as it's no longer in the table
             const id = currentQuestionsData[originalIndex] ? currentQuestionsData[originalIndex].id : `new_q_save_fallback_${Date.now()}_${i}`;
             
-            const textInput = rows[i].cells[0].querySelector('input'); // Text input is in the first cell (index 0)
+            const textInput = rows[i].cells[0].querySelector('input'); 
             const text = textInput.value.trim();
             
             textInput.style.borderColor = ''; 
@@ -267,15 +301,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (hasError) return;
-
-        const ids = updatedQuestions.map(q => q.id);
-        const duplicateIds = ids.filter((item, index) => ids.indexOf(item) !== index);
-        if (duplicateIds.length > 0) {
-            // This check is still relevant as IDs are auto-generated but we want to ensure they remain unique after potential reordering/bugs
-            console.warn("Duplicate IDs found during save process, this shouldn't happen with auto-generated IDs unless there's a bug:", duplicateIds);
-            // alert((currentGuiTranslations.gui_alert_duplicate_ids || "Duplicate question IDs found: {ids}. IDs must be unique.").replace('{ids}', duplicateIds.join(', ')));
-            // Might choose to proceed or show a more generic error if this occurs, as user cannot fix it.
-        }
 
         if (window.pywebview && window.pywebview.api.save_questions) {
             window.pywebview.api.save_questions(updatedQuestions).then(success => {
@@ -337,12 +362,16 @@ document.addEventListener('DOMContentLoaded', function () {
     function populateAllSettingsForm(settings) {
         // Basic Settings Tab
         uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
-        uiElements.settingsModalDarkModeToggle.checked = document.body.classList.contains('dark-mode');
+        
+        // Set theme selector based on localStorage or default
+        const savedTheme = localStorage.getItem('selectedTheme') || 'default-dark';
+        uiElements.settingsModalThemeSelect.value = savedTheme;
+        // uiElements.settingsModalDarkModeToggle.checked = document.body.classList.contains('dark-mode'); // REMOVED
+
         uiElements.settingsModalLangToggle.checked = (settings.DEFAULT_LANG === 'ru');
         uiElements.settingsOverrideUserLangToggle.checked = settings.OVERRIDE_USER_LANG === undefined ? true : settings.OVERRIDE_USER_LANG;
 
-
-        // PDF Settings Tab
+        // PDF Settings Tab (remains the same)
         const pdfSettings = settings.PDF_SETTINGS || {};
         uiElements.pdfFontFilePathInput.value = settings.FONT_FILE_PATH || "fonts/DejaVuSans.ttf";
         uiElements.pdfFontNameRegisteredInput.value = pdfSettings.font_name_registered || "CustomUnicodeFont";
@@ -359,8 +388,7 @@ document.addEventListener('DOMContentLoaded', function () {
         uiElements.pdfAppPhotoNumbInput.value = settings.APPLICATION_PHOTO_NUMB === undefined ? 1 : settings.APPLICATION_PHOTO_NUMB;
         uiElements.pdfSendToAdminsToggle.checked = settings.SEND_PDF_TO_ADMINS === undefined ? true : settings.SEND_PDF_TO_ADMINS;
 
-
-        // Admin Settings Tab
+        // Admin Settings Tab (remains the same)
         uiElements.adminBotTokenInput.value = settings.BOT_TOKEN || "";
         uiElements.adminUserIdsInput.value = settings.ADMIN_USER_IDS || "";
     }
@@ -380,14 +408,11 @@ document.addEventListener('DOMContentLoaded', function () {
             uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
         }
 
-        const newIsDark = uiElements.settingsModalDarkModeToggle.checked;
-        if (newIsDark !== document.body.classList.contains('dark-mode')) {
-            applyTheme(newIsDark);
-            localStorage.setItem('darkMode', newIsDark.toString());
-        }
+        // Theme is applied immediately by its own change listener and saved to localStorage.
+        // No need to handle it here explicitly unless sending to Python settings.
 
         const newLang = uiElements.settingsModalLangToggle.checked ? 'ru' : 'en';
-        let languageChangePromise = Promise.resolve(); // Default to resolved promise
+        let languageChangePromise = Promise.resolve(); 
         if (newLang !== currentFetchedSettings.DEFAULT_LANG) {
             if (window.pywebview && window.pywebview.api.set_system_language) {
                 languageChangePromise = window.pywebview.api.set_system_language(newLang).then(response => {
@@ -400,7 +425,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         
-        // Wait for language change to potentially complete before collecting other settings
         languageChangePromise.then(() => {
             const settingsToSave = {
                 OVERRIDE_USER_LANG: uiElements.settingsOverrideUserLangToggle.checked,
@@ -463,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Initializing GUI with config:", config);
         if (config.guiTranslations) applyGuiTranslations(config.guiTranslations);
         if (config.currentLang) {
-             currentFetchedSettings.DEFAULT_LANG = config.currentLang; // Store initial lang
+             currentFetchedSettings.DEFAULT_LANG = config.currentLang; 
              setSystemLanguageToggleState(config.currentLang);
         }
 
@@ -472,10 +496,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (config.initialLogs && config.initialLogs.length > 0) addBatchLogMessages(config.initialLogs);
 
-        const savedDarkMode = localStorage.getItem('darkMode');
-        const isDark = (savedDarkMode !== null) ? (savedDarkMode === 'true') : true;
-        if(uiElements.settingsModalDarkModeToggle) uiElements.settingsModalDarkModeToggle.checked = isDark;
-        applyTheme(isDark);
+        const savedTheme = localStorage.getItem('selectedTheme') || 'default-dark';
+        applyTheme(savedTheme); 
+        // Old dark mode specific logic removed
     };
 
     window.addEventListener('pywebviewready', function () {

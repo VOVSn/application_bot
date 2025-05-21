@@ -1,0 +1,362 @@
+/* application_bot/web_ui/aurora_dreams.css */
+
+/* --- START: Core Layout CSS (Shared Base) --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* font-family is set by aurora-theme body */
+}
+
+body { /* Base body from core, theming class will override specifics */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    overflow: hidden;
+}
+
+.app-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+.left-panel {
+    width: 280px;
+    padding: 20px 20px; /* Consistent horizontal padding */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.right-panel {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.logo-placeholder {
+    width: 200px;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.status-display {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 10px 20px; /* Vertical 10px, Horizontal 20px (matches button) */
+    border-radius: 8px; /* Default, can be overridden by theme */
+    text-align: center;
+    width: 100%;
+    margin-bottom: 5px;
+    box-sizing: border-box; /* Crucial for width calculation */
+}
+
+.neumorphic-button { /* Base button style, theme will override visuals */
+    padding: 12px 20px; /* Vertical 12px, Horizontal 20px */
+    border-radius: 12px; /* Default, can be overridden */
+    border: none;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box; /* Crucial for width calculation */
+}
+.neumorphic-button:disabled {
+    cursor: not-allowed;
+}
+
+.settings-group-placeholder {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 20px;
+    min-height: 50px;
+}
+
+.log-area {
+    flex-grow: 1;
+    padding: 15px;
+    border-radius: 15px; /* Default, can be overridden */
+    overflow-y: auto;
+    /* font-family is set by aurora-theme body or specific log rule */
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    pointer-events: auto !important;
+}
+.log-area div {
+    margin-bottom: 2px;
+    padding: 2px 0;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    pointer-events: auto !important;
+}
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: none; /* JS toggles to flex */
+    justify-content: center; align-items: center;
+    z-index: 1000; padding: 20px; box-sizing: border-box;
+}
+.modal-content {
+    width: 90%;
+    max-height: 90vh;
+    display: flex; flex-direction: column;
+    gap: 15px; overflow: hidden;
+    padding: 25px;
+    border-radius: 15px; /* Default, theme can override */
+}
+.modal-content.settings-modal-content {
+    max-width: 780px; /* Adjusted for preventing horizontal scroll */
+}
+.modal-content:not(.settings-modal-content) { max-width: 700px; }
+.modal-content h2 { text-align: center; margin-bottom: 10px; font-size: 20px; flex-shrink: 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0; padding-top: 10px; }
+.questions-modal-bottom-actions { justify-content: space-between; align-items: center; }
+.modal-bottom-right-buttons { display: flex; gap: 10px; }
+.modal-button { padding: 10px 18px; font-size: 14px; min-width: 100px; width: auto; }
+#settings-modal-theme-select, .neumorphic-input.modal-input {
+    padding: 8px 10px; border-radius: 8px; font-size: 14px;
+}
+#settings-modal-theme-select { width: auto; min-width: 200px; }
+
+
+.questions-table-container { flex-grow: 1; overflow-y: auto; border-radius: 8px; min-height: 150px; border: 1px solid; }
+#questions-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+#questions-table th, #questions-table td { padding: 10px; text-align: left; vertical-align: middle; word-wrap: break-word; border-bottom: 1px solid; }
+#questions-table th { font-weight: 600; position: sticky; top: 0; z-index: 10; font-size: 0.875em; }
+#questions-table tbody tr:last-child td { border-bottom: none; }
+#questions-table th:last-child, #questions-table td:last-child { width: 100px; text-align: center; }
+#questions-table input[type="text"].modal-input { width: 100%; }
+#questions-table .action-button { padding: 5px 10px; font-size: 13px; margin-right: 5px; min-width: auto; }
+#questions-table .action-button:last-child { margin-right: 0; }
+#questions-table .action-button.delete-icon-btn { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
+#questions-table .action-button.delete-icon-btn svg.trash-icon { width: 18px; height: 18px; }
+
+.tab-container { display: flex; margin-bottom: 20px; flex-shrink: 0; border-bottom: 1px solid; }
+.tab-button { padding: 10px 15px; cursor: pointer; border: none; background-color: transparent; font-size: 16px; font-weight: 500; transition: color 0.2s, border-bottom 0.2s; border-bottom: 3px solid transparent; margin-bottom: -1px; outline: none; }
+.tab-content {
+    display: none; flex-grow: 1; overflow-y: auto;
+    padding: 5px 5px 5px 5px; /* Adjusted for preventing horizontal scroll */
+}
+.tab-content.active-tab { display: block; }
+.settings-form-container { display: flex; flex-direction: column; gap: 18px; }
+.modal-form-group { display: flex; align-items: center; justify-content: space-between; }
+.modal-form-group label:first-child { flex-grow: 1; margin-right: 10px; }
+.modal-form-group .neumorphic-input.modal-input,
+.modal-form-group .settings-toggle,
+.modal-form-group #settings-modal-theme-select { flex-shrink: 0; }
+
+#settings-modal-log-lines-input { width: 80px; text-align: right; }
+#PdfSettingsTab .form-group, #AdminSettingsTab .form-group { display: flex; flex-direction: column; gap: 5px; }
+#PdfSettingsTab .form-group .neumorphic-input.modal-input, #AdminSettingsTab .form-group .neumorphic-input.modal-input { width: 100%; }
+#PdfSettingsTab .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Adjusted */
+    gap: 15px; /* Adjusted */
+}
+#PdfSettingsTab .form-group.full-width-checkbox { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
+.pdf-specific-toggle-group label:first-child { flex-grow: 1; margin-right: 10px; }
+.pdf-specific-toggle-group .toggle-switch { flex-shrink: 0; }
+.settings-toggle, .pdf-setting-toggle { transform: scale(0.9); }
+
+.toggle-switch { position: relative; width: 50px; height: 26px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; border-radius: 34px; transition: .4s; }
+.toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; border-radius: 50%; transition: .4s; }
+input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+.questions-table-container::-webkit-scrollbar, .tab-content::-webkit-scrollbar, .log-area::-webkit-scrollbar { width: 8px; }
+.questions-table-container::-webkit-scrollbar-track, .tab-content::-webkit-scrollbar-track, .log-area::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
+/* --- END: Core Layout CSS --- */
+
+
+/* --- START: Aurora Dreams Theme Specific Styles --- */
+body.aurora-theme {
+    background: linear-gradient(160deg, #1a2038 0%, #2c304e 30%, #4d406a 70%, #1e2240 100%);
+    color: #e8eef5;
+    font-family: 'Orbitron', 'Raleway', sans-serif !important;
+}
+.aurora-theme::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, rgba(78, 143, 233, 0.15), rgba(20, 230, 255, 0.2), rgba(140, 255, 220, 0.15), rgba(255, 120, 220, 0.2));
+    background-size: 400% 400%;
+    animation: auroraGradient 20s ease infinite;
+    z-index: -10;
+    pointer-events: none;
+}
+@keyframes auroraGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.aurora-theme .app-container {
+    background-color: rgba(25, 30, 55, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(120, 200, 255, 0.25);
+    box-shadow: 0 0 25px rgba(20, 170, 255, 0.25);
+}
+
+.aurora-theme .left-panel {
+    background-color: rgba(30, 35, 65, 0.6);
+    border-right: 1px solid rgba(120, 220, 255, 0.3);
+}
+.aurora-theme .right-panel {
+    background-color: rgba(30, 35, 65, 0.5);
+}
+
+.aurora-theme .logo-placeholder {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 12px rgba(120, 220, 255, 0.8)) brightness(1.2);
+}
+
+.aurora-theme .neumorphic-button {
+    background: transparent;
+    color: #d8e8fa;
+    border: 1px solid rgba(120, 200, 255, 0.5);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(80, 150, 220, 0.15), inset 0 0 5px rgba(80, 150, 220, 0.1);
+    transition: all 0.3s ease;
+    text-shadow: 0 0 3px rgba(100, 200, 255, 0.5);
+    font-family: inherit;
+}
+.aurora-theme .neumorphic-button:hover:not(:disabled) {
+    border-color: rgba(120, 200, 255, 0.7);
+    color: #e0f0ff;
+    box-shadow: 0 0 15px rgba(100, 180, 255, 0.3), inset 0 0 8px rgba(100, 180, 255, 0.2);
+}
+.aurora-theme .neumorphic-button:active:not(:disabled) {
+    background: rgba(100, 180, 255, 0.1);
+    transform: scale(0.98);
+}
+.aurora-theme .neumorphic-button:disabled {
+    border-color: rgba(100, 100, 120, 0.3) !important;
+    color: rgba(150, 170, 190, 0.5) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background: transparent !important;
+    transform: none !important;
+}
+
+.aurora-theme .log-area {
+    background-color: rgba(15, 25, 45, 0.75);
+    border: 1px solid rgba(90, 150, 200, 0.35);
+    color: #b8d0e8;
+    font-family: 'Fira Code', 'Source Code Pro', monospace !important;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
+    border-radius: 8px;
+}
+.aurora-theme .log-area::-webkit-scrollbar-thumb { background-color: rgba(70, 130, 180, 0.5); border-radius: 4px; }
+.aurora-theme .log-area::-webkit-scrollbar-track { background: rgba(5, 10, 25, 0.3); }
+
+.aurora-theme .status-display {
+    background-color: rgba(35, 45, 75, 0.75);
+    color: #e0f0ff;
+    border: 1px solid rgba(120, 170, 240, 0.35);
+    border-radius: 6px;
+    text-shadow: 0 0 6px rgba(120, 180, 255, 0.6);
+    box-shadow: 0 0 8px rgba(100, 150, 220, 0.1);
+}
+.aurora-theme .status-display.running { border-color: rgba(80, 220, 120, 0.5); text-shadow: 0 0 6px rgba(100, 255, 150, 0.7); color: #c8e6c9;}
+.aurora-theme .status-display.stopped { border-color: rgba(220, 80, 100, 0.5); text-shadow: 0 0 6px rgba(255, 100, 130, 0.7); color: #ffcdd2;}
+.aurora-theme .status-display.error   { border-color: rgba(255, 150, 50, 0.5); text-shadow: 0 0 6px rgba(255, 180, 80, 0.7); color: #ffecb3;}
+.aurora-theme .status-display.intermediate { border-color: rgba(180, 180, 100, 0.5); text-shadow: 0 0 6px rgba(200,200,120,0.7); color: #fff9c4;}
+
+
+.aurora-theme .modal-overlay {
+    background-color: rgba(10, 15, 35, 0.75);
+    backdrop-filter: blur(2px);
+}
+.aurora-theme .modal-content {
+    background: rgba(30, 35, 60, 0.92);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(120, 200, 255, 0.3);
+    box-shadow: 0 0 35px rgba(70, 140, 220, 0.3);
+    border-radius: 10px;
+    padding: 25px;
+}
+.aurora-theme .modal-content h2 { color: #f0f8ff; text-shadow: 0 0 8px rgba(120, 200, 255, 0.5); }
+
+.aurora-theme #settings-modal-theme-select,
+.aurora-theme .neumorphic-input.modal-input {
+    background-color: rgba(35,45,70,0.75);
+    border: 1px solid rgba(100,150,210,0.45);
+    color: #e0f0ff;
+    font-family: inherit;
+}
+.aurora-theme #settings-modal-theme-select:focus,
+.aurora-theme .neumorphic-input.modal-input:focus { border-color: rgba(120,180,240,0.7); box-shadow: 0 0 8px rgba(120,180,240,0.2); }
+
+/* Style modal buttons similar to general buttons but can have slight variations */
+.aurora-theme .modal-actions .neumorphic-button {
+    background: transparent;
+    border: 1px solid rgba(100,180,255,0.5);
+    color: #c0d8f0;
+    text-shadow: 0 0 3px rgba(100,200,255,0.4);
+    font-family: inherit; /* ensure it uses the theme font */
+    border-radius: 6px; /* slightly different radius for modal buttons if desired */
+}
+.aurora-theme .modal-actions .neumorphic-button:hover:not(:disabled) {
+    border-color: rgba(120,200,255,0.8);
+    color: #e0f0ff;
+    box-shadow: 0 0 10px rgba(100,180,255,0.2);
+}
+.aurora-theme .modal-actions .neumorphic-button.primary {
+    border-color: rgba(100, 220, 180, 0.6);
+    color: #d0fff0;
+    text-shadow: 0 0 5px rgba(100, 220, 180, 0.7);
+}
+.aurora-theme .modal-actions .neumorphic-button.primary:hover:not(:disabled) {
+    border-color: rgba(120,240,200,0.9);
+    box-shadow: 0 0 12px rgba(100,220,180,0.3);
+}
+
+
+.aurora-theme #questions-table th, .aurora-theme #questions-table td { border-bottom-color: rgba(80,130,190,0.3); }
+.aurora-theme #questions-table th { background-color: rgba(40, 50, 85, 0.75); color: #c8d8e8; }
+.aurora-theme .questions-table-container {
+    border-color: rgba(100,150,210,0.35);
+    background-color: rgba(20,25,45,0.55);
+    border-radius: 6px; /* Match other aurora elements */
+}
+.aurora-theme .questions-table-container::-webkit-scrollbar-thumb { background-color: rgba(70,130,180,0.4); border-radius: 4px; }
+.aurora-theme .questions-table-container::-webkit-scrollbar-track { background: transparent; }
+
+
+.aurora-theme .tab-container { border-bottom-color: rgba(100,150,210,0.35); }
+.aurora-theme .tab-button { color: #b8d0e8; }
+.aurora-theme .tab-button.active { border-bottom-color: rgba(120, 220, 255, 0.75); color: #e8f8ff; text-shadow: 0 0 5px rgba(100,200,255,0.4); }
+.aurora-theme .tab-content::-webkit-scrollbar-thumb { background-color: rgba(70,130,180,0.4); border-radius: 4px; }
+.aurora-theme .tab-content::-webkit-scrollbar-track { background: transparent; }
+
+
+.aurora-theme .toggle-slider { background: rgba(50,70,110,0.5); border: 1px solid rgba(80,120,180,0.3); }
+.aurora-theme .toggle-slider:before { background: rgba(120,160,220,0.7); box-shadow: 0 0 5px rgba(120,160,220,0.3); }
+.aurora-theme input:checked + .toggle-slider { background: rgba(80,180,150,0.5); border-color: rgba(80,180,150,0.4); }
+.aurora-theme input:checked + .toggle-slider:before { background: rgba(100,220,180,0.8); box-shadow: 0 0 5px rgba(100,220,180,0.4); }
+/* --- END: Aurora Dreams Theme Specific Styles --- */

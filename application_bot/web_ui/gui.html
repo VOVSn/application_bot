@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="gui_title_text">Application Bot Control</title> <!-- ID for title -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" id="main-stylesheet">
+    <link rel="stylesheet" id="theme-link-memphis" href="memphis.css" disabled>
+    <link rel="stylesheet" id="theme-link-aurora" href="aurora_dreams.css" disabled>
+    <!-- Google Fonts for Aurora Dreams theme (optional, but good for the look) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Raleway:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Fira Code for Aurora log area (optional) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+
 </head>
 <body class="dark-mode"> <!-- Default to dark, JS will adjust from localStorage -->
     <div class="app-container">
@@ -19,14 +26,11 @@
             <button id="edit-questions-button" class="neumorphic-button" data-i18n-key="gui_edit_questions_button">Edit Questions</button>
             <button id="edit-settings-button" class="neumorphic-button" data-i18n-key="gui_settings_button">Settings</button>
             
-            <!-- Settings previously here (Log Lines, Dark Theme, Language) are now in the modal -->
             <div class="settings-group-placeholder">
-                <!-- This div can be used for spacing or removed if not needed -->
             </div>
         </div>
         <div class="right-panel">
             <div id="log-output" class="log-area">
-                <!-- Log messages will be appended here -->
             </div>
         </div>
     </div>
@@ -35,24 +39,21 @@
     <div id="questions-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2 id="gui_modal_questions_title" data-i18n-key="gui_modal_questions_title">Edit Questions</h2>
-            <!-- REMOVED top-actions div -->
             <div class="questions-table-container">
                 <table id="questions-table">
                     <thead>
                         <tr>
-                            <!-- ID Header Removed -->
                             <th data-i18n-key="gui_modal_table_header_text">Text</th>
                             <th data-i18n-key="gui_modal_table_header_actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Question rows will be added here by JavaScript -->
                     </tbody>
                 </table>
             </div>
-            <div class="modal-actions bottom-actions questions-modal-bottom-actions"> <!-- Added class for specific styling -->
+            <div class="modal-actions bottom-actions questions-modal-bottom-actions">
                 <button id="add-question-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_add_question_button">Add Question</button>
-                <div class="modal-bottom-right-buttons"> <!-- Wrapper for save/cancel -->
+                <div class="modal-bottom-right-buttons">
                     <button id="save-questions-button" class="neumorphic-button modal-button primary" data-i18n-key="gui_modal_save_button">Save Changes</button>
                     <button id="cancel-questions-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_cancel_button">Cancel</button>
                 </div>
@@ -77,13 +78,17 @@
                         <label for="settings-modal-log-lines-input" data-i18n-key="gui_log_lines_label">Log Lines:</label>
                         <input type="number" id="settings-modal-log-lines-input" class="neumorphic-input modal-input" value="100" min="10" max="1000" step="10">
                     </div>
+                    <!-- New Theme Selector -->
                     <div class="form-group modal-form-group">
-                        <label for="settings-modal-dark-mode-toggle" data-i18n-key="gui_dark_theme_label">Dark Theme</label>
-                        <label class="toggle-switch settings-toggle">
-                            <input type="checkbox" id="settings-modal-dark-mode-toggle">
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <label for="settings-modal-theme-select" data-i18n-key="gui_theme_label">Theme:</label>
+                        <select id="settings-modal-theme-select" class="neumorphic-input modal-input" style="width: auto; min-width: 200px;">
+                            <option value="default-dark" data-i18n-key="gui_theme_default_dark">Default Dark</option>
+                            <option value="default-light" data-i18n-key="gui_theme_default_light">Default Light</option>
+                            <option value="memphis" data-i18n-key="gui_theme_memphis">Memphis</option>
+                            <option value="aurora-dreams" data-i18n-key="gui_theme_aurora_dreams">Aurora Dreams</option>
+                        </select>
                     </div>
+                    <!-- Old Dark Theme Toggle Removed -->
                     <div class="form-group modal-form-group">
                         <label for="settings-modal-lang-toggle" data-i18n-key="gui_lang_toggle_label">System Language (En/Ru):</label>
                         <label class="toggle-switch settings-toggle">
@@ -101,7 +106,7 @@
                 </div>
             </div>
 
-            <!-- PDF Settings Tab Content -->
+            <!-- PDF Settings Tab Content (remains the same) -->
             <div id="PdfSettingsTab" class="tab-content">
                 <div class="settings-form-container">
                     <div class="form-grid">
@@ -174,10 +179,10 @@
                 </div>
             </div>
 
-            <!-- Administration Tab Content -->
+            <!-- Administration Tab Content (remains the same) -->
             <div id="AdminSettingsTab" class="tab-content">
                  <div class="settings-form-container">
-                    <div class="form-group"> <!-- Changed from modal-form-group to form-group for consistency -->
+                    <div class="form-group">
                         <label for="admin-bot-token" data-i18n-key="gui_bot_token_label">Bot Token:</label>
                         <input type="password" id="admin-bot-token" class="neumorphic-input modal-input">
                     </div>

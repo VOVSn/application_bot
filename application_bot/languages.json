@@ -48,7 +48,6 @@
         "gui_open_folder_button": "Открыть Папку Заявок",
         "gui_edit_questions_button": "Редакт. Вопросы",
         "gui_log_lines_label": "Строк лога:",
-        "gui_dark_theme_label": "Тёмная тема",
         "gui_lang_toggle_label": "Язык системы (Ru/En):",
         "gui_modal_questions_title": "Редактировать Вопросы",
         "gui_modal_add_question_button": "Добавить Вопрос",
@@ -92,7 +91,13 @@
         "gui_alert_settings_save_failed": "Не удалось сохранить некоторые настройки. Проверьте логи.",
         "gui_alert_settings_save_error": "Ошибка при сохранении настроек: {error}",
         "gui_alert_bot_token_empty": "Токен бота не может быть пустым.",
-        "gui_alert_invalid_photo_numb": "Количество фото должно быть числом (0 или больше)."
+        "gui_alert_invalid_photo_numb": "Количество фото должно быть числом (0 или больше).",
+        "gui_theme_label": "Тема оформления:",
+        "gui_theme_default_dark": "По умолчанию (Тёмная)",
+        "gui_theme_default_light": "По умолчанию (Светлая)",
+        "gui_theme_memphis": "Мемфис",
+        "gui_theme_aurora_dreams": "Северное Сияние",
+        "gui_dark_theme_label": "Тёмная тема"
     },
     "en": {
         "start_message": "Hello! 👋 This is an application bot.\nUse /apply to start.",
@@ -143,7 +148,6 @@
         "gui_open_folder_button": "Open Applications Folder",
         "gui_edit_questions_button": "Edit Questions",
         "gui_log_lines_label": "Log Lines:",
-        "gui_dark_theme_label": "Dark Theme",
         "gui_lang_toggle_label": "System Language (En/Ru):",
         "gui_modal_questions_title": "Edit Questions",
         "gui_modal_add_question_button": "Add Question",
@@ -187,6 +191,12 @@
         "gui_alert_settings_save_failed": "Failed to save some settings. Check logs.",
         "gui_alert_settings_save_error": "Error saving settings: {error}",
         "gui_alert_bot_token_empty": "Bot Token cannot be empty.",
-        "gui_alert_invalid_photo_numb": "Number of photos must be a number (0 or more)."
+        "gui_alert_invalid_photo_numb": "Number of photos must be a number (0 or more).",
+        "gui_theme_label": "Theme:",
+        "gui_theme_default_dark": "Default Dark",
+        "gui_theme_default_light": "Default Light",
+        "gui_theme_memphis": "Memphis",
+        "gui_theme_aurora_dreams": "Aurora Dreams",
+        "gui_dark_theme_label": "Dark Theme"
     }
 }
