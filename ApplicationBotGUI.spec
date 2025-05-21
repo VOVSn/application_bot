@@ -22,7 +22,7 @@ datas_to_bundle = [
     # e.g., dist/ApplicationBotGUI/web_ui/ and its contents
     ('application_bot/web_ui', 'web_ui'),
     # e.g., dist/ApplicationBotGUI/fonts/DejaVuSans.ttf
-    ('application_bot/fonts/DejaVuSans.ttf', os.path.join('fonts', 'DejaVuSans.ttf'))
+    ('application_bot/fonts/DejaVuSans.ttf', os.path.join('fonts', '.'))
 ]
 
 # Hidden imports that PyInstaller might miss.
