@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
         stopButton: document.getElementById('stop-button'),
         openApplicationsFolderButton: document.getElementById('open-applications-folder-button'),
         editQuestionsButton: document.getElementById('edit-questions-button'),
-        editSettingsButton: document.getElementById('edit-settings-button'),
+        // Old editSettingsButton removed
 
         statusDisplayLabelPrefix: document.getElementById('gui_status_label_prefix'),
         statusMessageContent: document.getElementById('status-message-content'),
@@ -57,10 +57,11 @@ document.addEventListener('DOMContentLoaded', function () {
         themeLinkMemphis: document.getElementById('theme-link-memphis'),
         themeLinkAurora: document.getElementById('theme-link-aurora'),
 
-        // Info Buttons
+        // Info and Settings Buttons
         helpButton: document.getElementById('help-button'),
         aboutButton: document.getElementById('about-button'),
-        appVersionDisplay: document.getElementById('app-version-display')
+        settingsIconButton: document.getElementById('settings-icon-button') // New settings icon button
+        // appVersionDisplay removed
     };
 
     let currentMaxLogLines = 100;
@@ -130,8 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (el.tagName === 'OPTION') {
                     el.textContent = translations[key];
                 } else if (el.tagName === 'INPUT' && (el.type === 'button' || el.type === 'submit') || el.tagName === 'BUTTON') {
-                    // Don't override text content for icon buttons if they primarily use SVG
-                    if (!el.classList.contains('icon-button')) {
+                    if (!el.classList.contains('icon-button')) { // Don't override text content for icon buttons
                         el.textContent = translations[key];
                     }
                 } else if (el.tagName === 'LABEL' || el.tagName === 'H2' || el.tagName === 'TH' || el.id === 'gui_title_text') {
@@ -144,9 +144,10 @@ document.addEventListener('DOMContentLoaded', function () {
             populateQuestionsTable(currentQuestionsData);
         }
 
-        // Update tooltips for help/about buttons
+        // Update tooltips for help/about/settings buttons
         if (uiElements.helpButton) uiElements.helpButton.title = currentGuiTranslations.gui_help_button_title || "Help";
         if (uiElements.aboutButton) uiElements.aboutButton.title = currentGuiTranslations.gui_about_button_title || "About";
+        if (uiElements.settingsIconButton) uiElements.settingsIconButton.title = currentGuiTranslations.gui_settings_button_title || "Settings";
     };
 
     uiElements.settingsModalLangToggle.addEventListener('change', function() {
@@ -205,15 +206,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (uiElements.aboutButton) {
         uiElements.aboutButton.addEventListener('click', () => {
             const aboutTitle = currentGuiTranslations.gui_about_modal_title || "About";
+            // Version is now part of the translation string for gui_about_modal_content
             const aboutMessage = (
                 currentGuiTranslations.gui_about_modal_content ||
-                "Application Bot Control\n" +
-                "Version: 0.1.1 beta\n" +
-                "Author: VOVSN\n" +
-                "GitHub: github.com/vovsn\n\n" +
-                "This application provides a GUI to manage and configure the Application Telegram Bot."
+                "Application Bot Control\nVersion: 0.1.1 beta\nAuthor: VOVSN\nGitHub: github.com/vovsn\n\nThis application provides a GUI to manage and configure the Application Telegram Bot."
             );
             alert(`${aboutTitle}\n\n${aboutMessage}`);
+        });
+    }
+
+    // Event listener for the new Settings Icon Button
+    if (uiElements.settingsIconButton) {
+        uiElements.settingsIconButton.addEventListener('click', () => {
+            openSettingsModal();
         });
     }
 
@@ -425,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function () {
         uiElements.adminUserIdsInput.value = settings.ADMIN_USER_IDS || "";
     }
 
-    uiElements.editSettingsButton.addEventListener('click', openSettingsModal);
+    // Old large settings button event listener removed
     uiElements.cancelAllSettingsButton.addEventListener('click', closeSettingsModal);
 
     uiElements.saveAllSettingsButton.addEventListener('click', () => {
@@ -514,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.initializeGui = function(config) {
         console.log("Initializing GUI with config:", config);
         if (config.guiTranslations) {
-            applyGuiTranslations(config.guiTranslations); // This will now also set button titles
+            applyGuiTranslations(config.guiTranslations); 
         }
         if (config.currentLang) {
              currentFetchedSettings.DEFAULT_LANG = config.currentLang; 
