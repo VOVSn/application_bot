@@ -27,7 +27,7 @@
         "title_font_size": 16,
         "header_font_size": 10,
         "question_font_size": 12,
-        "question_bold": false,
+        "question_bold": true,
         "answer_font_size": 10
     },
     "PYWEBVIEW_DEBUG": false

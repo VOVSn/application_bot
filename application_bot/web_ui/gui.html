@@ -35,9 +35,7 @@
     <div id="questions-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2 id="gui_modal_questions_title" data-i18n-key="gui_modal_questions_title">Edit Questions</h2>
-            <div class="modal-actions top-actions">
-                <button id="add-question-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_add_question_button">Add Question</button>
-            </div>
+            <!-- REMOVED top-actions div -->
             <div class="questions-table-container">
                 <table id="questions-table">
                     <thead>
@@ -52,9 +50,12 @@
                     </tbody>
                 </table>
             </div>
-            <div class="modal-actions bottom-actions">
-                <button id="save-questions-button" class="neumorphic-button modal-button primary" data-i18n-key="gui_modal_save_button">Save Changes</button>
-                <button id="cancel-questions-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_cancel_button">Cancel</button>
+            <div class="modal-actions bottom-actions questions-modal-bottom-actions"> <!-- Added class for specific styling -->
+                <button id="add-question-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_add_question_button">Add Question</button>
+                <div class="modal-bottom-right-buttons"> <!-- Wrapper for save/cancel -->
+                    <button id="save-questions-button" class="neumorphic-button modal-button primary" data-i18n-key="gui_modal_save_button">Save Changes</button>
+                    <button id="cancel-questions-button" class="neumorphic-button modal-button" data-i18n-key="gui_modal_cancel_button">Cancel</button>
+                </div>
             </div>
         </div>
     </div>

@@ -206,12 +206,23 @@ input:checked + .toggle-slider:before {
 
 .modal-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-end; /* Default for settings modal */
     gap: 10px;
     flex-shrink: 0;
     padding-top: 10px; /* Space above buttons */
 }
-.modal-actions.top-actions { justify-content: flex-start; padding-top: 0; }
+/* Removed .modal-actions.top-actions as it's no longer used */
+
+/* Specific for Questions Modal Bottom Actions */
+.questions-modal-bottom-actions {
+    justify-content: space-between; /* Add Question on left, Save/Cancel on right */
+    align-items: center; /* Vertically align buttons if their heights differ slightly */
+}
+.modal-bottom-right-buttons {
+    display: flex;
+    gap: 10px;
+}
+
 
 .modal-button {
     padding: 10px 18px;
@@ -238,6 +249,8 @@ input:checked + .toggle-slider:before {
 #questions-table th {
     font-weight: 600; position: sticky; top: 0; z-index: 10;
     /* Background color for sticky header set by theme */
+    font-size: 0.875em; /* Reduce font size by approx 2 steps (e.g., 16px -> 14px if base is 16px for body) */
+    /* If you have a base font size for tables, you can use a pixel value like: font-size: 12px; */
 }
 #questions-table tbody tr:last-child td { border-bottom: none; }
 
@@ -257,6 +270,25 @@ input:checked + .toggle-slider:before {
 #questions-table input[type="text"].modal-input { width: 100%; } /* Ensure full width in table cell */
 #questions-table .action-button { padding: 5px 10px; font-size: 13px; margin-right: 5px; min-width: auto; }
 #questions-table .action-button:last-child { margin-right: 0; }
+
+
+/* NEW STYLES FOR DELETE ICON BUTTON */
+#questions-table .action-button.delete-icon-btn {
+    width: 34px;  /* Fixed width */
+    height: 34px; /* Fixed height */
+    padding: 0;   /* Remove padding, use flex to center icon */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px; /* Slightly less rounded for a small square button */
+}
+
+#questions-table .action-button.delete-icon-btn svg.trash-icon {
+    width: 18px;  /* Size of the SVG icon */
+    height: 18px; /* Size of the SVG icon */
+    /* 'fill="currentColor"' is in the SVG, so it inherits button's text color */
+}
+/* END OF NEW STYLES */
 
 
 /* Settings Modal Tabs and Forms */

@@ -98,7 +98,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (uiElements.questionsModal.style.display === 'flex') {
-            populateQuestionsTable(currentQuestionsData); // Re-populate to update delete button text
+            // If questions modal is open, repopulate to update aria-label/title of delete buttons
+            // This assumes currentQuestionsData is still valid.
+            populateQuestionsTable(currentQuestionsData);
         }
     };
 
@@ -213,8 +215,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const actionsCell = row.insertCell();
             const deleteButton = document.createElement('button');
-            deleteButton.textContent = currentGuiTranslations.gui_modal_delete_button || 'Delete';
-            deleteButton.classList.add('neumorphic-button', 'action-button', 'modal-button');
+            deleteButton.classList.add('neumorphic-button', 'action-button', 'modal-button', 'delete-icon-btn'); // Added 'delete-icon-btn' class
+            deleteButton.innerHTML = `<svg class="trash-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>`;
+            
+            // For accessibility (tooltip and screen readers)
+            const deleteLabel = currentGuiTranslations.gui_modal_delete_button || 'Delete'; // Keep using translation for tooltip
+            deleteButton.setAttribute('aria-label', deleteLabel);
+            deleteButton.title = deleteLabel;
+            
             deleteButton.onclick = () => deleteQuestionRow(index); // index in currentQuestionsData
             actionsCell.appendChild(deleteButton);
         });
