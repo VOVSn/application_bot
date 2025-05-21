@@ -111,8 +111,14 @@
         "gui_modal_info_ok_button": "OK",
         "gui_logo_label": "Логотип:",
         "gui_logo_default": "По умолчанию (Бот)",
-        "gui_logo_abc": "Application Control Bot",
-        "gui_logo_zaya": "ZAYA Бот"
+        "gui_logo_abc": "Application Bot Control",
+        "gui_logo_zaya": "ZAYA Бот",
+        "gui_status_connection_lost": "Соединение потеряно",
+        "gui_status_connection_restored": "Соединение восстановлено",
+        "gui_status_bot_paused_no_connection": "Соединение потеряно. Бот приостановлен, пытается подключиться...",
+        "gui_status_bot_cannot_start_no_connection": "Не удается запустить бота: нет подключения к Интернету.",
+        "gui_status_connection_lost_bot_stopped": "Соединение потеряно. Бот остановлен.",
+        "gui_status_attempting_restart_after_connection": "Соединение восстановлено. Попытка перезапуска бота..."
     },
     "en": {
         "start_message": "Hello! 👋 This is an application bot.\nUse /apply to start.",
@@ -226,7 +232,13 @@
         "gui_modal_info_ok_button": "OK",
         "gui_logo_label": "Logo:",
         "gui_logo_default": "Default (Bot)",
-        "gui_logo_abc": "Application Control Bot",
-        "gui_logo_zaya": "ZAYA Bot"
+        "gui_logo_abc": "Application Bot Control",
+        "gui_logo_zaya": "ZAYA Bot",
+        "gui_status_connection_lost": "Connection Lost",
+        "gui_status_connection_restored": "Connection Restored",
+        "gui_status_bot_paused_no_connection": "Connection lost. Bot paused, attempting to reconnect...",
+        "gui_status_bot_cannot_start_no_connection": "Cannot start bot: No internet connection.",
+        "gui_status_connection_lost_bot_stopped": "Connection lost. Bot is stopped.",
+        "gui_status_attempting_restart_after_connection": "Connection restored. Attempting to restart bot..."
     }
 }
