@@ -1,0 +1,408 @@
+/* application_bot/web_ui/memphis.css */
+
+/* --- START: Core Layout CSS (Shared Base) --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* font-family is set by memphis-theme body */
+}
+
+body { /* Base body from core, theming class will override specifics */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    overflow: hidden;
+}
+
+.app-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+.left-panel {
+    width: 280px;
+    padding: 20px 20px; /* Consistent horizontal padding */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.right-panel {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.logo-placeholder {
+    width: 200px;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.status-display {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 10px 20px; /* Vertical 10px, Horizontal 20px (matches button) */
+    border-radius: 8px; /* Default, can be overridden by theme */
+    text-align: center;
+    width: 100%;
+    margin-bottom: 5px;
+    box-sizing: border-box; /* Crucial for width calculation */
+}
+
+.neumorphic-button { /* Base button style, theme will override visuals */
+    padding: 12px 20px; /* Vertical 12px, Horizontal 20px */
+    border-radius: 12px; /* Default, can be overridden */
+    border: none;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box; /* Crucial for width calculation */
+}
+.neumorphic-button:disabled {
+    cursor: not-allowed;
+}
+
+.settings-group-placeholder {
+    width: 100%;
+    padding-top: 20px;
+    min-height: 10px; 
+}
+
+.log-area {
+    flex-grow: 1;
+    padding: 15px;
+    border-radius: 15px; 
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    pointer-events: auto !important;
+}
+.log-area div {
+    margin-bottom: 2px;
+    padding: 2px 0;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    pointer-events: auto !important;
+}
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: none; 
+    justify-content: center; align-items: center;
+    z-index: 1000; padding: 20px; box-sizing: border-box;
+}
+.modal-content {
+    width: 90%;
+    max-height: 90vh;
+    display: flex; flex-direction: column;
+    gap: 15px; overflow: hidden;
+    padding: 25px;
+    border-radius: 15px; 
+}
+.modal-content.settings-modal-content {
+    max-width: 780px; 
+}
+.modal-content:not(.settings-modal-content) { max-width: 700px; }
+.modal-content.info-modal-content { max-width: 550px; } 
+.modal-content h2 { text-align: center; margin-bottom: 10px; font-size: 20px; flex-shrink: 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0; padding-top: 10px; }
+.questions-modal-bottom-actions { justify-content: space-between; align-items: center; }
+.modal-bottom-right-buttons { display: flex; gap: 10px; }
+.modal-button { padding: 10px 18px; font-size: 14px; min-width: 100px; width: auto; }
+#settings-modal-theme-select, .neumorphic-input.modal-input {
+    padding: 8px 10px; border-radius: 8px; font-size: 14px;
+}
+#settings-modal-theme-select { width: auto; min-width: 200px; }
+.info-modal-text-content { 
+    white-space: pre-wrap; 
+    max-height: 60vh;
+    overflow-y: auto;
+    text-align: left; 
+    line-height: 1.6;
+}
+
+
+.questions-table-container { flex-grow: 1; overflow-y: auto; border-radius: 8px; min-height: 150px; border: 1px solid; }
+#questions-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+#questions-table th, #questions-table td { padding: 10px; text-align: left; vertical-align: middle; word-wrap: break-word; border-bottom: 1px solid; }
+#questions-table th { font-weight: 600; position: sticky; top: 0; z-index: 10; font-size: 0.875em; }
+#questions-table tbody tr:last-child td { border-bottom: none; }
+#questions-table th:last-child, #questions-table td:last-child { width: 100px; text-align: center; }
+#questions-table input[type="text"].modal-input { width: 100%; }
+#questions-table .action-button { padding: 5px 10px; font-size: 13px; margin-right: 5px; min-width: auto; }
+#questions-table .action-button:last-child { margin-right: 0; }
+#questions-table .action-button.delete-icon-btn { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
+#questions-table .action-button.delete-icon-btn svg.trash-icon { width: 18px; height: 18px; }
+
+.tab-container { display: flex; margin-bottom: 20px; flex-shrink: 0; border-bottom: 1px solid; }
+.tab-button { padding: 10px 15px; cursor: pointer; border: none; background-color: transparent; font-size: 16px; font-weight: 500; transition: color 0.2s, border-bottom 0.2s; border-bottom: 3px solid transparent; margin-bottom: -1px; outline: none; }
+.tab-content {
+    display: none; flex-grow: 1; overflow-y: auto;
+    padding: 5px 5px 5px 5px; 
+}
+.tab-content.active-tab { display: block; }
+.settings-form-container { display: flex; flex-direction: column; gap: 18px; }
+.modal-form-group { display: flex; align-items: center; justify-content: space-between; }
+.modal-form-group label:first-child { flex-grow: 1; margin-right: 10px; }
+.modal-form-group .neumorphic-input.modal-input,
+.modal-form-group .settings-toggle,
+.modal-form-group #settings-modal-theme-select { flex-shrink: 0; }
+
+#settings-modal-log-lines-input { width: 80px; text-align: right; }
+#PdfSettingsTab .form-group, #AdminSettingsTab .form-group { display: flex; flex-direction: column; gap: 5px; }
+#PdfSettingsTab .form-group .neumorphic-input.modal-input, #AdminSettingsTab .form-group .neumorphic-input.modal-input { width: 100%; }
+#PdfSettingsTab .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+    gap: 15px; 
+}
+#PdfSettingsTab .form-group.full-width-checkbox { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
+.pdf-specific-toggle-group label:first-child { flex-grow: 1; margin-right: 10px; }
+.pdf-specific-toggle-group .toggle-switch { flex-shrink: 0; }
+.settings-toggle, .pdf-setting-toggle { transform: scale(0.9); }
+
+.toggle-switch { position: relative; width: 50px; height: 26px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; border-radius: 34px; transition: .4s; }
+.toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; border-radius: 50%; transition: .4s; }
+input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+.questions-table-container::-webkit-scrollbar, 
+.tab-content::-webkit-scrollbar, 
+.log-area::-webkit-scrollbar,
+.info-modal-text-content::-webkit-scrollbar { 
+    width: 8px; 
+}
+.questions-table-container::-webkit-scrollbar-track, 
+.tab-content::-webkit-scrollbar-track, 
+.log-area::-webkit-scrollbar-track,
+.info-modal-text-content::-webkit-scrollbar-track { 
+    background: transparent; margin: 5px 0; 
+}
+
+.bottom-info-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin-top: auto; 
+    padding-top: 15px;
+}
+
+.neumorphic-button.icon-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.app-version {
+    width: 100%;
+    text-align: center;
+    font-size: 0.75em;
+    opacity: 0.7;
+    padding-top: 8px;
+    padding-bottom: 5px;
+}
+/* --- END: Core Layout CSS --- */
+
+
+/* --- START: Memphis Theme Specific Styles --- */
+body.memphis-theme {
+    background-color: #fdfd96; /* Pastel Yellow */
+    color: #000000;
+    font-family: 'Comic Sans MS', 'Chalkduster', 'Ink Free', cursive, sans-serif !important;
+}
+
+.memphis-theme .app-container {
+    border: 8px solid #FF69B4; /* Hot Pink */
+    box-shadow: 10px 10px 0px #00FFFF; /* Cyan hard shadow */
+    background-color: #ffffff;
+}
+
+.memphis-theme .left-panel {
+    background-color: #ADD8E6; /* Light Blue */
+    border-right: 5px dashed #FFB6C1; /* Light Pink */
+}
+
+.memphis-theme .right-panel {
+    background-color: #98FB98; /* Pale Green */
+}
+
+.memphis-theme .logo-placeholder {
+    border: 3px dotted #FFD700; /* Gold */
+    padding: 5px;
+    background-color: #fff;
+    filter: none !important; 
+}
+
+.memphis-theme .neumorphic-button {
+    background-color: #FF69B4; /* Hot Pink */
+    color: #FFFFFF;
+    border: 3px solid #000000;
+    border-radius: 0; /* Sharp edges */
+    box-shadow: 5px 5px 0px #000000; /* Hard shadow */
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: inherit; 
+}
+.memphis-theme .neumorphic-button:hover:not(:disabled) {
+    background-color: #ff85c8;
+    box-shadow: 5px 5px 0px #000000; 
+}
+.memphis-theme .neumorphic-button:active:not(:disabled) {
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0px #000000;
+}
+.memphis-theme .neumorphic-button:disabled {
+    background-color: #d3d3d3 !important;
+    color: #666666 !important;
+    box-shadow: none !important;
+    border-color: #a0a0a0 !important;
+    transform: none !important;
+}
+.memphis-theme .neumorphic-button.icon-button {
+    background-color: #FFFF00; /* Yellow */
+    color: #000000; /* Black icon */
+    border: 2px solid #000000;
+    box-shadow: 3px 3px 0px #000000;
+    border-radius: 4px; 
+    text-transform: none; 
+}
+.memphis-theme .neumorphic-button.icon-button:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px #000000;
+}
+
+
+.memphis-theme .log-area {
+    background-color: #FFFFFF;
+    border: 4px dotted #FFD700; /* Gold */
+    color: #333333;
+    font-family: 'Courier New', Courier, monospace !important;
+    border-radius: 0;
+    padding: 10px;
+}
+.memphis-theme .log-area::-webkit-scrollbar-thumb { background-color: #FFD700; border-radius: 0; }
+.memphis-theme .log-area::-webkit-scrollbar-track { background: #fff; }
+
+
+.memphis-theme .status-display {
+    background-color: #00FFFF; /* Cyan */
+    color: #000000;
+    border: 3px solid #000000;
+    font-weight: bold;
+    border-radius: 0;
+}
+.memphis-theme .status-display.running { background-color: #ADFF2F; border-color: #FF69B4; }
+.memphis-theme .status-display.stopped { background-color: #FFA07A; border-color: #000000; }
+.memphis-theme .status-display.error   { background-color: #FF4500; color: #FFFFFF; border-color: #FFFF00; }
+.memphis-theme .status-display.intermediate { background-color: #FFDAF0; border-color: #000000; }
+
+
+.memphis-theme .modal-overlay {
+    background-color: rgba(255, 105, 180, 0.3); /* Semi-transparent Hot Pink */
+}
+.memphis-theme .modal-content {
+    background-color: #FFFFFF;
+    border: 6px solid #000000;
+    box-shadow: 10px 10px 0px #00FFFF, -10px -10px 0px #FF69B4; 
+    border-radius: 0;
+    padding: 20px;
+}
+.memphis-theme .modal-content h2 { color: #FF69B4; text-shadow: 2px 2px #00FFFF; font-weight: bold; }
+
+.memphis-theme #settings-modal-theme-select,
+.memphis-theme .neumorphic-input.modal-input {
+    border-radius: 0;
+    border: 2px solid #000;
+    box-shadow: 3px 3px 0 #cccccc;
+    font-family: inherit;
+    background-color: #fff;
+    color: #000;
+}
+
+.memphis-theme .modal-actions .neumorphic-button {
+    background-color: #FFD700; /* Gold */
+    color: #000;
+    font-weight: bold;
+    border: 2px solid #000;
+    box-shadow: 3px 3px 0 #ccc;
+    text-transform: none; 
+    border-radius: 0; 
+}
+.memphis-theme .modal-actions .neumorphic-button:hover:not(:disabled) { background-color: #ffec80; }
+.memphis-theme .modal-actions .neumorphic-button.primary { background-color: #00FFFF; color: #000; }
+.memphis-theme .modal-actions .neumorphic-button.primary:hover:not(:disabled) { background-color: #80ffff; }
+
+
+.memphis-theme #questions-table { border-top: 3px solid #000; }
+.memphis-theme #questions-table th, .memphis-theme #questions-table td {
+    border-bottom-color: #000;
+    border-right: 1px dashed #FFB6C1;
+}
+.memphis-theme #questions-table td:last-child, .memphis-theme #questions-table th:last-child { border-right: none; }
+.memphis-theme #questions-table th {
+    background-color: #FFFF00; /* Yellow */
+    color: #000000;
+    border-bottom: 3px solid #000000;
+    font-weight: bold;
+}
+.memphis-theme .questions-table-container {
+    border-color: #000000;
+    border-radius: 0;
+    box-shadow: 5px 5px 0px #FFB6C1;
+    background-color: #fff; 
+}
+.memphis-theme .questions-table-container::-webkit-scrollbar-thumb { background-color: #FF69B4; border-radius: 0;}
+.memphis-theme .questions-table-container::-webkit-scrollbar-track { background: #fff; }
+
+.memphis-theme .tab-container { border-bottom-color: #000; }
+.memphis-theme .tab-button { color: #000000; font-weight: bold; }
+.memphis-theme .tab-button.active { border-bottom-color: #FF69B4; color: #FF69B4; }
+.memphis-theme .tab-content::-webkit-scrollbar-thumb { background-color: #00FFFF; border-radius: 0; }
+.memphis-theme .tab-content::-webkit-scrollbar-track { background: #fff; }
+
+
+.memphis-theme .toggle-slider { background: #FFB6C1; border: 2px solid #000; box-shadow: 2px 2px 0 #ccc; border-radius:0; }
+.memphis-theme .toggle-slider:before { background: #FFFF00; border: 1px solid #000; border-radius: 0; height: 16px; width: 16px; left: 4px; bottom: 4px;}
+.memphis-theme input:checked + .toggle-slider { background: #FF69B4; }
+.memphis-theme input:checked + .toggle-slider:before { background: #00FFFF; transform: translateX(22px); }
+
+.memphis-theme .app-version { color: #000; opacity: 0.8; }
+
+/* Scrollbar for info modal body in memphis theme */
+.memphis-theme .info-modal-text-content { font-family: 'Comic Sans MS', cursive; }
+.memphis-theme .info-modal-text-content::-webkit-scrollbar-thumb { background-color: #FF69B4; border-radius: 0;}
+.memphis-theme .info-modal-text-content::-webkit-scrollbar-track { background: #fff; }
+/* --- END: Memphis Theme Specific Styles --- */

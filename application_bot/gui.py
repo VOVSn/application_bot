@@ -8,7 +8,7 @@ import queue
 from collections import deque
 import time
 import json
-import html
+import html # Ensure html is imported
 import os
 import platform
 import subprocess
@@ -17,7 +17,7 @@ from typing import List, Dict, Any
 from application_bot import utils
 from application_bot.main import create_bot_application, run_bot_async, stop_bot_async
 from application_bot.utils import (
-    load_settings, load_questions, load_languages, # Added load_languages
+    load_settings, load_questions, load_languages,
     get_external_file_path, save_settings as utils_save_settings, get_text, get_data_file_path
 )
 
@@ -44,15 +44,17 @@ def _get_gui_localization_texts(lang_code: str) -> dict:
         "gui_lang_toggle_label", "gui_status_error_ui_disconnected",
         "gui_edit_questions_button", "gui_modal_questions_title", "gui_modal_add_question_button",
         "gui_modal_save_button", "gui_modal_cancel_button", "gui_modal_delete_button",
-        "gui_modal_table_header_id", "gui_modal_table_header_text", "gui_modal_table_header_actions",
-        "gui_alert_question_empty_fields", "gui_alert_duplicate_ids", "gui_alert_questions_saved",
+        "gui_modal_table_header_text", "gui_modal_table_header_actions",
+        "gui_alert_question_text_empty", "gui_alert_duplicate_ids",
+        "gui_alert_questions_saved_title", "gui_alert_questions_saved",
         "gui_alert_questions_save_failed", "gui_alert_questions_save_error",
         "gui_settings_button", "gui_modal_settings_title",
         "gui_tab_basic_settings", "gui_tab_pdf_settings", "gui_tab_admin_settings",
         "gui_override_user_lang_label",
         "gui_send_pdf_to_admins_label", "gui_app_photo_numb_label",
         "gui_bot_token_label", "gui_admin_ids_label",
-        "gui_alert_settings_saved", "gui_alert_settings_save_failed",
+        "gui_alert_settings_saved_title", "gui_alert_settings_saved",
+        "gui_alert_settings_save_failed",
         "gui_alert_settings_save_error", "gui_alert_bot_token_empty",
         "gui_alert_invalid_photo_numb",
         "gui_pdf_font_file_path", "gui_pdf_font_name_registered", "gui_pdf_page_width_mm",
@@ -61,10 +63,15 @@ def _get_gui_localization_texts(lang_code: str) -> dict:
         "gui_pdf_title_font_size", "gui_pdf_header_font_size", "gui_pdf_question_font_size",
         "gui_pdf_answer_font_size", "gui_pdf_question_bold",
         "gui_alert_pdf_settings_load_failed",
-        "gui_alert_pdf_font_paths_empty"
+        "gui_alert_pdf_font_paths_empty",
+        "gui_theme_label", "gui_theme_default_dark", "gui_theme_default_light",
+        "gui_theme_memphis", "gui_theme_aurora_dreams", "gui_theme_navy_formal",
+        "gui_help_button_title", "gui_about_button_title", "gui_settings_button_title",
+        "gui_help_modal_title", "gui_help_modal_content",
+        "gui_about_modal_title", "gui_about_modal_content",
+        "gui_modal_info_ok_button",
+        "gui_logo_label", "gui_logo_default", "gui_logo_abc", "gui_logo_zaya" # Added logo keys
     ]
-    # get_text will handle cases where SETTINGS or LANGUAGES_CACHE are not fully loaded by using fallbacks.
-    # This explicit check is a safeguard, but get_text is now more robust.
     if not utils.SETTINGS or not utils.LANGUAGES_CACHE:
          logger.warning("_get_gui_localization_texts: utils.SETTINGS or utils.LANGUAGES_CACHE not yet populated. Using keys as text.")
          return {key: key.replace("gui_", "").replace("_", " ").title() for key in gui_keys}
@@ -118,7 +125,7 @@ class PyWebviewApi:
             logger.error("GUI API: Cannot open applications folder, SETTINGS not loaded.")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_settings_not_loaded", self._gui.current_language, default="Error: Settings not loaded. Cannot open folder.")
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # Standard alert ok here
             return
 
         app_folder_name = utils.SETTINGS.get("APPLICATION_FOLDER")
@@ -126,7 +133,7 @@ class PyWebviewApi:
             logger.error("GUI API: APPLICATION_FOLDER not defined in settings.")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_app_folder_not_configured", self._gui.current_language, default="Error: Application folder not configured.")
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # Standard alert ok here
             return
 
         folder_path = get_external_file_path(app_folder_name)
@@ -140,7 +147,7 @@ class PyWebviewApi:
                 logger.error(f"GUI API: Could not create applications folder {folder_path}: {e}")
                 if self._gui.window:
                     alert_msg = get_text("gui_alert_cannot_create_folder", self._gui.current_language, default="Error: Could not create or access folder. Check logs.").format(folder=folder_path)
-                    self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
+                    self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # Standard alert ok here
                 return
 
         try:
@@ -156,12 +163,11 @@ class PyWebviewApi:
             logger.error(f"GUI API: Error opening folder '{normalized_folder_path}': {e}")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_cannot_open_folder", self._gui.current_language, default="Error: Could not open folder. Check logs.").format(folder=normalized_folder_path)
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg)}')")
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # Standard alert ok here
 
     def set_system_language(self, lang_code: str):
         if not utils.SETTINGS:
             logger.error("GUI API: SETTINGS not loaded, cannot change language.")
-            # Fallback texts will be basic if languages also not loaded
             return {"error": "SETTINGS not loaded", "new_lang": "en", "translations": _get_gui_localization_texts("en")}
         if not utils.LANGUAGES_CACHE:
             logger.error("GUI API: LANGUAGES_CACHE not loaded, cannot change language effectively.")
@@ -169,7 +175,7 @@ class PyWebviewApi:
 
 
         original_lang = utils.SETTINGS.get("DEFAULT_LANG", "en")
-        if lang_code not in utils.LANGUAGES_CACHE: # Check against loaded languages
+        if lang_code not in utils.LANGUAGES_CACHE:
             logger.warning(f"GUI API: Language code '{lang_code}' not found in available languages. Reverting to original '{original_lang}'.")
             lang_code = original_lang
 
@@ -208,30 +214,31 @@ class PyWebviewApi:
         logger.info(f"GUI API: Received request to save questions. Count: {len(questions_data) if questions_data else 'None'}")
         if not isinstance(questions_data, list):
             logger.error("GUI API: Invalid data format for saving questions. Expected a list.")
-            return False
+            return False # Corresponds to "save_failed" alert
 
         for i, q_item in enumerate(questions_data):
             if not isinstance(q_item, dict) or "id" not in q_item or "text" not in q_item:
                 logger.error(f"GUI API: Invalid question item format at index {i}: {q_item}. Missing 'id' or 'text'.")
                 return False
-            if not q_item["id"] or not q_item["text"]:
-                 logger.error(f"GUI API: Question ID or text is empty at index {i}: {q_item}.")
-                 return False
+            if not q_item["text"]:
+                 logger.error(f"GUI API: Question text is empty at index {i}: {q_item}.")
+                 return False # Corresponds to "save_failed" alert (after frontend validation)
 
         if utils.save_questions(questions_data):
             logger.info("GUI API: Questions saved and reloaded successfully via utils.save_questions.")
-            return True
+            return True # Corresponds to "questions_saved" alert
         else:
             logger.error("GUI API: Failed to save questions via utils.save_questions.")
-            return False
+            return False # Corresponds to "save_failed" alert
 
     def get_all_settings(self) -> Dict[str, Any]:
         logger.info("GUI API: Received request for all settings.")
         if not utils.SETTINGS:
             logger.critical("GUI API: utils.SETTINGS is unexpectedly None in get_all_settings. This shouldn't happen.")
-            # Fallback, though load_settings should prevent this
             return {
-                "OVERRIDE_USER_LANG": True, "DEFAULT_LANG": "en", "BOT_TOKEN": "", "ADMIN_USER_IDS": "",
+                "OVERRIDE_USER_LANG": True, "DEFAULT_LANG": "en", "THEME": "default-dark",
+                "SELECTED_LOGO": "default", # Added
+                "BOT_TOKEN": "", "ADMIN_USER_IDS": "",
                 "APPLICATION_PHOTO_NUMB": 1, "SEND_PDF_TO_ADMINS": True,
                 "FONT_FILE_PATH": "fonts/DejaVuSans.ttf",
                 "PDF_SETTINGS": {
@@ -254,10 +261,11 @@ class PyWebviewApi:
         for key, default_value in default_pdf_config.items():
             pdf_settings_data.setdefault(key, default_value)
         
-        # "LANGUAGES" key is no longer part of settings.json
         return {
             "OVERRIDE_USER_LANG": utils.SETTINGS.get("OVERRIDE_USER_LANG", True),
             "DEFAULT_LANG": utils.SETTINGS.get("DEFAULT_LANG", "en"),
+            "THEME": utils.SETTINGS.get("THEME", "default-dark"),
+            "SELECTED_LOGO": utils.SETTINGS.get("SELECTED_LOGO", "default"), # Added
             "BOT_TOKEN": utils.SETTINGS.get("BOT_TOKEN", ""),
             "ADMIN_USER_IDS": utils.SETTINGS.get("ADMIN_USER_IDS", ""),
             "APPLICATION_PHOTO_NUMB": utils.SETTINGS.get("APPLICATION_PHOTO_NUMB", 1),
@@ -276,6 +284,8 @@ class PyWebviewApi:
             return False
 
         utils.SETTINGS["OVERRIDE_USER_LANG"] = bool(new_settings_data.get("OVERRIDE_USER_LANG", True))
+        utils.SETTINGS["THEME"] = str(new_settings_data.get("THEME", "default-dark"))
+        utils.SETTINGS["SELECTED_LOGO"] = str(new_settings_data.get("SELECTED_LOGO", "default")) # Added
         # DEFAULT_LANG is handled by set_system_language API call
 
         bot_token = str(new_settings_data.get("BOT_TOKEN", "")).strip()
@@ -314,11 +324,12 @@ class PyWebviewApi:
                 if not current_pdf_settings["font_name_registered"]:
                      logger.error("GUI API: PDF Registered Font Name cannot be empty.")
                      # return False
+
                 current_pdf_settings["photo_position"] = str(pdf_sub_settings_from_ui.get("photo_position", "top_right"))
                 
                 numeric_keys_float = ["page_width_mm", "page_height_mm", "margin_mm", "photo_width_mm"]
                 for key in numeric_keys_float:
-                    current_pdf_settings[key] = float(pdf_sub_settings_from_ui.get(key, current_pdf_settings.get(key, 0)))
+                    current_pdf_settings[key] = float(pdf_sub_settings_from_ui.get(key, current_pdf_settings.get(key, 0.0)))
 
                 numeric_keys_int = ["title_font_size", "header_font_size", "question_font_size", "answer_font_size"]
                 for key in numeric_keys_int:
@@ -398,7 +409,7 @@ class BotGUI:
                         break 
                 
                 if messages_to_send and self.window:
-                    js_safe_messages = [html.escape(m) for m in messages_to_send]
+                    js_safe_messages = [html.escape(m, quote=False) for m in messages_to_send]
                     js_messages_array_str = json.dumps(js_safe_messages)
                     self._gui_eval_js(f'addBatchLogMessages({js_messages_array_str})')
 
@@ -487,7 +498,7 @@ class BotGUI:
         elif not utils.SETTINGS or not utils.SETTINGS.get("BOT_TOKEN"):
             status_key = get_text("gui_alert_bot_token_empty", self.current_language, default="Bot token is missing.")
             is_error = True
-            is_raw = True # Since get_text returns the actual string
+            is_raw = True 
         
         self.update_status(status_key, is_error=is_error, is_running=False, is_raw_text=is_raw)
             
@@ -531,9 +542,11 @@ class BotGUI:
 
         initial_config = {
             "currentLang": self.current_language,
+            "currentTheme": utils.SETTINGS.get("THEME", "default-dark") if utils.SETTINGS else "default-dark",
+            "currentLogo": utils.SETTINGS.get("SELECTED_LOGO", "default") if utils.SETTINGS else "default", # Added
             "guiTranslations": gui_translations,
             "maxLogLines": self.current_max_log_lines,
-            "initialLogs": list(self.log_deque)
+            "initialLogs": [html.escape(log_item, quote=False) for log_item in list(self.log_deque)]
         }
         self._gui_eval_js(f"initializeGui({json.dumps(initial_config)})")
         
@@ -548,13 +561,13 @@ class BotGUI:
         self.log_deque = deque(maxlen=self.current_max_log_lines)
         for log_item in current_logs[-self.current_max_log_lines:]:
             self.log_deque.append(log_item)
-            
-        js_safe_current_logs = [html.escape(m) for m in list(self.log_deque)]
+        
+        js_safe_current_logs = [html.escape(m, quote=False) for m in list(self.log_deque)]
         self._gui_eval_js(f"setLogLinesConfig({self.current_max_log_lines}, {json.dumps(js_safe_current_logs)})")
 
     def repopulate_logs_to_frontend(self):
         if self.log_deque:
-            js_safe_logs = [html.escape(m) for m in list(self.log_deque)]
+            js_safe_logs = [html.escape(m, quote=False) for m in list(self.log_deque)]
             self._gui_eval_js(f"clearLogs(); addBatchLogMessages({json.dumps(js_safe_logs)})")
 
 
@@ -567,8 +580,6 @@ class BotGUI:
         html_file_rel_path = "web_ui/gui.html"
         html_file_abs_path = get_asset_path(html_file_rel_path)
         
-        # get_text is used for title. Ensure languages are loaded if possible.
-        # current_language is set by main_gui_start
         initial_title = get_text("gui_title", self.current_language, default="Application Bot Control")
 
         logger.info(f"GUI: Creating pywebview window. Title: '{initial_title}'. HTML: '{html_file_abs_path}'")
@@ -584,9 +595,9 @@ class BotGUI:
         self.window.events.closed += self._trigger_cleanup_on_window_closed
         
         debug_mode = utils.SETTINGS.get("PYWEBVIEW_DEBUG", False) if utils.SETTINGS else False
-        logger.info(f"GUI: Starting pywebview main loop. Debug: {debug_mode}")
+        logger.info(f"GUI: Starting pywebview main loop. Debug: {debug_mode}, Private Mode: True")
         
-        webview.start(debug=debug_mode, private_mode=False)
+        webview.start(debug=debug_mode, private_mode=True) 
         
         logger.info("GUI: Pywebview main loop has exited. Application should be shutting down.")
 
@@ -646,23 +657,21 @@ def main_gui_start():
     logger.info("ApplicationBotGUI starting...")
 
     settings_file_ok = utils.load_settings()
-    languages_ok = utils.load_languages() # Load languages after settings
+    languages_ok = utils.load_languages()
     questions_ok = utils.load_questions()
 
     app_gui = BotGUI()
     app_gui.is_settings_loaded_successfully = settings_file_ok 
     
-    # utils.SETTINGS should exist here due to load_settings behavior
     app_gui.current_language = utils.SETTINGS.get("DEFAULT_LANG", "en") if utils.SETTINGS else "en"
     
     if settings_file_ok:
-        logger.info(f"GUI: Settings loaded. Initial language from settings: {app_gui.current_language}")
+        logger.info(f"GUI: Settings loaded. Initial language: {app_gui.current_language}, Theme: {utils.SETTINGS.get('THEME', 'default-dark')}, Logo: {utils.SETTINGS.get('SELECTED_LOGO', 'default')}")
     else:
         logger.critical("GUI CRITICAL: settings.json was not found or was invalid. GUI is using default values. Functionality may be limited.")
 
     if not languages_ok:
         logger.warning("GUI WARNING: Failed to load languages.json. GUI text might be missing or fallback to keys/defaults.")
-        # The GUI will still try to run, using fallback texts from get_text/minimal LANGUAGES_CACHE.
 
     if not questions_ok:
         logger.warning("GUI WARNING: Failed to load questions.json initially. /apply command might be affected.")
