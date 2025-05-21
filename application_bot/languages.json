@@ -58,6 +58,7 @@
         "gui_modal_table_header_actions": "Действия",
         "gui_alert_question_text_empty": "Текст вопроса не может быть пустым для строки {row_num}.",
         "gui_alert_duplicate_ids": "Найдены дублирующиеся ID вопросов: {ids}. ID должны быть уникальными.",
+        "gui_alert_questions_saved_title": "Вопросы Обновлены",
         "gui_alert_questions_saved": "Вопросы успешно сохранены!",
         "gui_alert_questions_save_failed": "Не удалось сохранить вопросы. Проверьте логи.",
         "gui_alert_questions_save_error": "Ошибка при сохранении вопросов: {error}",
@@ -77,7 +78,7 @@
         "gui_pdf_question_bold": "Вопрос жирным:",
         "gui_alert_pdf_settings_load_failed": "Не удалось загрузить настройки PDF для редактирования.",
         "gui_alert_pdf_font_paths_empty": "Путь к файлу шрифта и имя регистрируемого шрифта не могут быть пустыми.",
-        "gui_settings_button": "Настройки", 
+        "gui_settings_button": "Настройки",
         "gui_settings_button_title": "Настройки",
         "gui_modal_settings_title": "Настройки Бота",
         "gui_tab_basic_settings": "Основные",
@@ -88,6 +89,7 @@
         "gui_app_photo_numb_label": "Кол-во фото для заявки:",
         "gui_bot_token_label": "Токен Бота:",
         "gui_admin_ids_label": "ID Администраторов (через запятую):",
+        "gui_alert_settings_saved_title": "Настройки Обновлены",
         "gui_alert_settings_saved": "Настройки успешно сохранены! Некоторые изменения требуют перезапуска бота.",
         "gui_alert_settings_save_failed": "Не удалось сохранить некоторые настройки. Проверьте логи.",
         "gui_alert_settings_save_error": "Ошибка при сохранении настроек: {error}",
@@ -98,13 +100,15 @@
         "gui_theme_default_light": "По умолчанию (Светлая)",
         "gui_theme_memphis": "Мемфис",
         "gui_theme_aurora_dreams": "Северное Сияние",
+        "gui_theme_navy_formal": "Формальный Светлый",
         "gui_dark_theme_label": "Тёмная тема",
         "gui_help_button_title": "Помощь",
         "gui_about_button_title": "О программе",
         "gui_help_modal_title": "Справка - Управление Ботом",
         "gui_help_modal_content": "Управление Ботом Заявок - Справка:\n\n- Запустить/Остановить Бота: Управляет работой Telegram бота.\n- Открыть Папку Заявок: Открывает папку, где сохраняются PDF заявки.\n- Редакт. Вопросы: Изменение вопросов, которые бот задает пользователям.\n- Настройки: Конфигурация токена бота, ID администраторов, опций PDF, языка, темы и строк лога.\n\nБот позволяет пользователям подавать заявки, отвечая на вопросы и отправляя фотографии, после чего генерируется PDF.",
         "gui_about_modal_title": "О программе - Управление Ботом",
-        "gui_about_modal_content": "Управление Ботом Заявок\nВерсия: 0.1.1 beta\nАвтор: VOVSN\nGitHub: github.com/vovsn\n\nЭто приложение предоставляет графический интерфейс для управления и настройки Telegram Бота Заявок."
+        "gui_about_modal_content": "Управление Ботом Заявок\nВерсия: 0.1.2\nАвтор: VOVSN\nGitHub: github.com/vovsn\n\nЭто приложение предоставляет графический интерфейс для управления и настройки Telegram Бота Заявок.",
+        "gui_modal_info_ok_button": "OK"
     },
     "en": {
         "start_message": "Hello! 👋 This is an application bot.\nUse /apply to start.",
@@ -165,6 +169,7 @@
         "gui_modal_table_header_actions": "Actions",
         "gui_alert_question_text_empty": "Question Text cannot be empty for row {row_num}.",
         "gui_alert_duplicate_ids": "Duplicate question IDs found: {ids}. IDs must be unique.",
+        "gui_alert_questions_saved_title": "Questions Updated",
         "gui_alert_questions_saved": "Questions saved successfully!",
         "gui_alert_questions_save_failed": "Failed to save questions. Check logs.",
         "gui_alert_questions_save_error": "Error saving questions: {error}",
@@ -195,6 +200,7 @@
         "gui_app_photo_numb_label": "Number of Photos for App:",
         "gui_bot_token_label": "Bot Token:",
         "gui_admin_ids_label": "Admin User IDs (comma-separated):",
+        "gui_alert_settings_saved_title": "Settings Updated",
         "gui_alert_settings_saved": "Settings saved successfully! Some changes may require a bot restart.",
         "gui_alert_settings_save_failed": "Failed to save some settings. Check logs.",
         "gui_alert_settings_save_error": "Error saving settings: {error}",
@@ -205,12 +211,14 @@
         "gui_theme_default_light": "Default Light",
         "gui_theme_memphis": "Memphis",
         "gui_theme_aurora_dreams": "Aurora Dreams",
+        "gui_theme_navy_formal": "Navy Formal Light",
         "gui_dark_theme_label": "Dark Theme",
         "gui_help_button_title": "Help",
         "gui_about_button_title": "About",
         "gui_help_modal_title": "Help - Bot Control",
         "gui_help_modal_content": "Application Bot Control - Help:\n\n- Start/Stop Bot: Controls the Telegram bot's operation.\n- Open Applications Folder: Opens the folder where PDF applications are saved.\n- Edit Questions: Modify the questions the bot asks users.\n- Settings: Configure bot token, admin IDs, PDF options, language, theme, and log lines.\n\nThe bot allows users to apply by answering questions and submitting photos, generating a PDF.",
         "gui_about_modal_title": "About - Bot Control",
-        "gui_about_modal_content": "Application Bot Control\nVersion: 0.1.1 beta\nAuthor: VOVSN\nGitHub: github.com/vovsn\n\nThis application provides a GUI to manage and configure the Application Telegram Bot."
+        "gui_about_modal_content": "Application Bot Control\nVersion: 0.1.2\nAuthor: VOVSN\nGitHub: github.com/vovsn\n\nThis application provides a GUI to manage and configure the Application Telegram Bot.",
+        "gui_modal_info_ok_button": "OK"
     }
 }

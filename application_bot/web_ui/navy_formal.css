@@ -1,0 +1,420 @@
+/* application_bot/web_ui/navy_formal.css */
+
+/* --- START: Core Layout CSS (Shared Base) --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body { 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    overflow: hidden;
+}
+
+.app-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+.left-panel {
+    width: 280px;
+    padding: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.right-panel {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.logo-placeholder {
+    width: 200px;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.status-display {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 5px;
+    box-sizing: border-box;
+}
+
+.neumorphic-button {
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+.neumorphic-button:disabled {
+    cursor: not-allowed;
+}
+
+.settings-group-placeholder {
+    width: 100%;
+    padding-top: 20px;
+    min-height: 10px; 
+}
+
+.log-area {
+    flex-grow: 1;
+    padding: 15px;
+    border-radius: 15px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    pointer-events: auto !important;
+}
+.log-area div {
+    margin-bottom: 2px;
+    padding: 2px 0;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    pointer-events: auto !important;
+}
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    display: none;
+    justify-content: center; align-items: center;
+    z-index: 1000; padding: 20px; box-sizing: border-box;
+}
+.modal-content {
+    width: 90%;
+    max-height: 90vh;
+    display: flex; flex-direction: column;
+    gap: 15px; overflow: hidden;
+    padding: 25px;
+    border-radius: 15px;
+}
+.modal-content.settings-modal-content {
+    max-width: 780px; 
+}
+.modal-content:not(.settings-modal-content) { max-width: 700px; }
+.modal-content.info-modal-content { max-width: 550px; } /* Sizing for new info modal */
+.modal-content h2 { text-align: center; margin-bottom: 10px; font-size: 20px; flex-shrink: 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0; padding-top: 10px; }
+.questions-modal-bottom-actions { justify-content: space-between; align-items: center; }
+.modal-bottom-right-buttons { display: flex; gap: 10px; }
+.modal-button { padding: 10px 18px; font-size: 14px; min-width: 100px; width: auto; }
+#settings-modal-theme-select, .neumorphic-input.modal-input {
+    padding: 8px 10px; border-radius: 8px; font-size: 14px;
+}
+#settings-modal-theme-select { width: auto; min-width: 200px; }
+.info-modal-text-content { /* Styling for the body of the new info modal */
+    white-space: pre-wrap; 
+    max-height: 60vh;
+    overflow-y: auto;
+    text-align: left; 
+    line-height: 1.6;
+}
+
+
+.questions-table-container { flex-grow: 1; overflow-y: auto; border-radius: 8px; min-height: 150px; border: 1px solid; }
+#questions-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+#questions-table th, #questions-table td { padding: 10px; text-align: left; vertical-align: middle; word-wrap: break-word; border-bottom: 1px solid; }
+#questions-table th { font-weight: 600; position: sticky; top: 0; z-index: 10; font-size: 0.875em; }
+#questions-table tbody tr:last-child td { border-bottom: none; }
+#questions-table th:last-child, #questions-table td:last-child { width: 100px; text-align: center; }
+#questions-table input[type="text"].modal-input { width: 100%; }
+#questions-table .action-button { padding: 5px 10px; font-size: 13px; margin-right: 5px; min-width: auto; }
+#questions-table .action-button:last-child { margin-right: 0; }
+#questions-table .action-button.delete-icon-btn { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
+#questions-table .action-button.delete-icon-btn svg.trash-icon { width: 18px; height: 18px; }
+
+.tab-container { display: flex; margin-bottom: 20px; flex-shrink: 0; border-bottom: 1px solid; }
+.tab-button { padding: 10px 15px; cursor: pointer; border: none; background-color: transparent; font-size: 16px; font-weight: 500; transition: color 0.2s, border-bottom 0.2s; border-bottom: 3px solid transparent; margin-bottom: -1px; outline: none; }
+.tab-content {
+    display: none; flex-grow: 1; overflow-y: auto;
+    padding: 5px 5px 5px 5px; 
+}
+.tab-content.active-tab { display: block; }
+.settings-form-container { display: flex; flex-direction: column; gap: 18px; }
+.modal-form-group { display: flex; align-items: center; justify-content: space-between; }
+.modal-form-group label:first-child { flex-grow: 1; margin-right: 10px; }
+.modal-form-group .neumorphic-input.modal-input,
+.modal-form-group .settings-toggle,
+.modal-form-group #settings-modal-theme-select { flex-shrink: 0; }
+
+#settings-modal-log-lines-input { width: 80px; text-align: right; }
+#PdfSettingsTab .form-group, #AdminSettingsTab .form-group { display: flex; flex-direction: column; gap: 5px; }
+#PdfSettingsTab .form-group .neumorphic-input.modal-input, #AdminSettingsTab .form-group .neumorphic-input.modal-input { width: 100%; }
+#PdfSettingsTab .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+    gap: 15px; 
+}
+#PdfSettingsTab .form-group.full-width-checkbox { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
+.pdf-specific-toggle-group label:first-child { flex-grow: 1; margin-right: 10px; }
+.pdf-specific-toggle-group .toggle-switch { flex-shrink: 0; }
+.settings-toggle, .pdf-setting-toggle { transform: scale(0.9); }
+
+.toggle-switch { position: relative; width: 50px; height: 26px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; border-radius: 34px; transition: .4s; }
+.toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; border-radius: 50%; transition: .4s; }
+input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+.questions-table-container::-webkit-scrollbar, 
+.tab-content::-webkit-scrollbar, 
+.log-area::-webkit-scrollbar,
+.info-modal-text-content::-webkit-scrollbar { /* Added info modal scrollbar */
+    width: 8px; 
+}
+.questions-table-container::-webkit-scrollbar-track, 
+.tab-content::-webkit-scrollbar-track, 
+.log-area::-webkit-scrollbar-track,
+.info-modal-text-content::-webkit-scrollbar-track { /* Added info modal scrollbar track */
+    background: transparent; margin: 5px 0; 
+}
+
+.bottom-info-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin-top: auto;
+    padding-top: 15px;
+}
+
+.neumorphic-button.icon-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.app-version {
+    width: 100%;
+    text-align: center;
+    font-size: 0.75em;
+    opacity: 0.7;
+    padding-top: 8px;
+    padding-bottom: 5px;
+}
+/* --- END: Core Layout CSS --- */
+
+
+/* --- START: Navy Formal (Light) Theme Specific Styles --- */
+body.navy-formal-theme {
+    --navy-bg: #F0F4F8; /* Lightest blue-gray, e.g., Slate 100 */
+    --navy-panel-bg: #FFFFFF; /* White */
+    --navy-text: #0F172A; /* Dark Slate 900 for text */
+    --navy-text-muted: #64748B; /* Slate 500 for muted text */
+    --navy-accent: #005A9C; /* A strong, professional blue */
+    --navy-accent-hover: #004070; /* Darker version of accent */
+    --navy-border: #CBD5E1; /* Slate 300 for borders */
+    --navy-input-bg: #F8FAFC; /* Slate 50 - very light gray for inputs */
+    --navy-button-text: #FFFFFF; /* White text on accent buttons */
+    --navy-success: #16A34A; /* Green 600 */
+    --navy-error: #DC2626; /* Red 600 */
+    --navy-warning: #F59E0B; /* Amber 500 */
+    --navy-intermediate: #7C3AED; /* Purple 600 */
+    --navy-modal-overlay: rgba(203, 213, 225, 0.6); /* Slate 300 with alpha */
+
+    background-color: var(--navy-bg);
+    color: var(--navy-text);
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+.navy-formal-theme .app-container {
+    background-color: var(--navy-panel-bg);
+    border: 1px solid var(--navy-border);
+}
+
+.navy-formal-theme .left-panel {
+    background-color: var(--navy-bg);
+    border-right: 1px solid var(--navy-border);
+}
+.navy-formal-theme .right-panel {
+    background-color: var(--navy-panel-bg);
+}
+
+.navy-formal-theme .logo-placeholder {
+    opacity: 1;
+    filter: none; /* Remove any dark mode filters */
+}
+
+.navy-formal-theme .neumorphic-button {
+    background-color: var(--navy-accent);
+    color: var(--navy-button-text);
+    border: 1px solid var(--navy-accent-hover);
+    border-radius: 4px; 
+    box-shadow: none; 
+    font-weight: 600;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    font-family: inherit;
+}
+.navy-formal-theme .neumorphic-button:hover:not(:disabled) {
+    background-color: var(--navy-accent-hover);
+    border-color: var(--navy-accent);
+}
+.navy-formal-theme .neumorphic-button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+.navy-formal-theme .neumorphic-button:disabled {
+    background-color: var(--navy-border) !important;
+    color: var(--navy-text-muted) !important;
+    border-color: var(--navy-border) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+.navy-formal-theme .neumorphic-button.icon-button {
+    background-color: var(--navy-panel-bg);
+    color: var(--navy-accent);
+    border: 1px solid var(--navy-accent);
+    border-radius: 4px;
+}
+.navy-formal-theme .neumorphic-button.icon-button:hover:not(:disabled) {
+    background-color: var(--navy-accent);
+    color: var(--navy-button-text);
+}
+
+
+.navy-formal-theme .log-area {
+    background-color: var(--navy-input-bg);
+    border: 1px solid var(--navy-border);
+    color: var(--navy-text); /* Ensure good contrast on light input bg */
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+    border-radius: 4px;
+}
+.navy-formal-theme .log-area::-webkit-scrollbar-thumb { background-color: var(--navy-border); border-radius: 4px; }
+.navy-formal-theme .log-area::-webkit-scrollbar-track { background: var(--navy-input-bg); }
+
+.navy-formal-theme .status-display {
+    background-color: var(--navy-panel-bg);
+    color: var(--navy-text);
+    border: 1px solid var(--navy-border);
+    border-radius: 4px;
+    font-weight: 600;
+}
+.navy-formal-theme .status-display.running { border-color: var(--navy-success); color: var(--navy-success); background-color: #EBFBF1; /* Lighter green bg */ }
+.navy-formal-theme .status-display.stopped { border-color: var(--navy-error); color: var(--navy-error); background-color: #FEECEE; /* Lighter red bg */ }
+.navy-formal-theme .status-display.error   { background-color: var(--navy-error); color: var(--navy-button-text); border-color: var(--navy-error); }
+.navy-formal-theme .status-display.intermediate { border-color: var(--navy-intermediate); color: var(--navy-intermediate); background-color: #F5F1FE; /* Lighter purple bg */ }
+
+
+.navy-formal-theme .modal-overlay {
+    background-color: var(--navy-modal-overlay);
+    backdrop-filter: blur(1px);
+}
+.navy-formal-theme .modal-content {
+    background: var(--navy-panel-bg);
+    border: 1px solid var(--navy-border);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Softer shadow for light theme */
+    border-radius: 6px;
+    padding: 20px;
+}
+.navy-formal-theme .modal-content h2 { color: var(--navy-accent); font-weight: 600; }
+
+.navy-formal-theme #settings-modal-theme-select,
+.navy-formal-theme .neumorphic-input.modal-input {
+    background-color: var(--navy-input-bg);
+    border: 1px solid var(--navy-border);
+    color: var(--navy-text);
+    font-family: inherit;
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+.navy-formal-theme #settings-modal-theme-select:focus,
+.navy-formal-theme .neumorphic-input.modal-input:focus {
+    border-color: var(--navy-accent);
+    box-shadow: 0 0 0 2px rgba(0, 90, 156, 0.2); /* Accent color with alpha */
+    outline: none;
+}
+
+.navy-formal-theme .modal-actions .neumorphic-button {
+    font-weight: 600;
+    padding: 8px 16px;
+}
+.navy-formal-theme .modal-actions .neumorphic-button.primary {
+    background-color: var(--navy-success);
+    border-color: var(--navy-success);
+    color: #fff; /* White text on green button */
+}
+.navy-formal-theme .modal-actions .neumorphic-button.primary:hover:not(:disabled) {
+    background-color: #15803D; /* Darker Green 700 */
+    border-color: #15803D;
+}
+
+
+.navy-formal-theme #questions-table th, .navy-formal-theme #questions-table td { border-bottom-color: var(--navy-border); }
+.navy-formal-theme #questions-table th {
+    background-color: var(--navy-input-bg); /* Lighter header for table */
+    color: var(--navy-accent);
+    border-bottom-width: 2px;
+    font-weight: 600;
+}
+.navy-formal-theme .questions-table-container {
+    border-color: var(--navy-border);
+    background-color: var(--navy-panel-bg); /* White background for table area */
+    border-radius: 4px;
+}
+.navy-formal-theme .questions-table-container::-webkit-scrollbar-thumb { background-color: var(--navy-border); }
+.navy-formal-theme .questions-table-container::-webkit-scrollbar-track { background-color: var(--navy-input-bg); }
+
+
+.navy-formal-theme .tab-container { border-bottom-color: var(--navy-border); }
+.navy-formal-theme .tab-button { color: var(--navy-text-muted); font-weight: 600; }
+.navy-formal-theme .tab-button.active { border-bottom-color: var(--navy-accent); color: var(--navy-accent); }
+.navy-formal-theme .tab-content::-webkit-scrollbar-thumb { background-color: var(--navy-border); }
+.navy-formal-theme .tab-content::-webkit-scrollbar-track { background-color: var(--navy-input-bg); }
+
+
+.navy-formal-theme .toggle-slider { background: var(--navy-border); border: 1px solid var(--navy-border); border-radius: 4px; }
+.navy-formal-theme .toggle-slider:before { background: var(--navy-panel-bg); border-radius: 2px; height: 18px; width: 18px; left: 4px; bottom: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);}
+.navy-formal-theme input:checked + .toggle-slider { background: var(--navy-accent); border-color: var(--navy-accent); }
+.navy-formal-theme input:checked + .toggle-slider:before { background: var(--navy-button-text); }
+
+.navy-formal-theme .app-version { color: var(--navy-text-muted); opacity: 0.7; }
+
+/* Scrollbar for info modal body in navy-formal theme */
+.navy-formal-theme .info-modal-text-content::-webkit-scrollbar-thumb { 
+    background-color: var(--navy-border); 
+    border-radius: 4px; 
+}
+.navy-formal-theme .info-modal-text-content::-webkit-scrollbar-track { 
+    background: var(--navy-input-bg); 
+}
+/* --- END: Navy Formal (Light) Theme Specific Styles --- */

@@ -38,10 +38,8 @@ def get_internal_data_path(relative_bundle_path: str) -> str:
     (e.g., 'languages.json' if its destination is '.', or 'subdir/file.ext' if destination is 'subdir').
     """
     if getattr(sys, 'frozen', False):  # PyInstaller bundle
-        # sys._MEIPASS is the root of the extracted data files (e.g., dist/AppName for one-folder)
         return os.path.join(sys._MEIPASS, relative_bundle_path)
     else:
-        # Development: file is relative to this utils.py module (application_bot folder)
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_bundle_path)
 
 
@@ -72,9 +70,9 @@ def load_json_file(file_path: str, file_description: str) -> Optional[Any]:
                 logger.warning(f"{file_description} file at {file_path} is empty.")
                 if file_description.lower().startswith("questions"): return []
                 elif file_description.lower().startswith("languages"): return {}
-                return None # For settings, None if empty
+                return None 
             return json.loads(content)
-    except FileNotFoundError: # Should be caught by os.path.exists, but good practice
+    except FileNotFoundError:
         logger.error(f"{file_description} file not found at {file_path} (FileNotFoundError).")
     except json.JSONDecodeError as e:
         logger.error(f"Error decoding {file_description} file at {file_path}: {e}")
@@ -97,7 +95,7 @@ def save_json_file(data: Any, file_path: str, file_description: str, indent: int
 def save_settings(settings_data: Dict[str, Any], filename: str = "settings.json") -> bool:
     """Saves the settings dictionary to an EXTERNAL JSON file."""
     settings_path = get_data_file_path(filename) 
-    settings_data_to_save = {k: v for k, v in settings_data.items() if k != "LANGUAGES"} # LANGUAGES is not part of settings.json
+    settings_data_to_save = {k: v for k, v in settings_data.items() if k != "LANGUAGES"}
     return save_json_file(settings_data_to_save, settings_path, "Settings")
 
 def load_settings(filename: str = "settings.json") -> bool:
@@ -116,12 +114,9 @@ def load_settings(filename: str = "settings.json") -> bool:
             logger.info(f"Successfully loaded bundled default settings from '{internal_settings_path}'. "
                         f"These will be used and saved to '{external_settings_path}'.")
             SETTINGS = bundled_content
-            # Ensure defaults are applied even to bundled version
             _ensure_default_settings_keys()
-            # Save the loaded bundled settings to the external path to bootstrap it
             if not save_settings(SETTINGS, filename): 
                 logger.error(f"Failed to bootstrap external settings file at '{external_settings_path}' from bundled defaults.")
-            # Successfully loaded settings, either external or bootstrapped internal
             file_existed_and_valid_externally = True 
         else:
             logger.warning(f"Bundled default settings also not found or invalid at '{internal_settings_path}'. "
@@ -153,13 +148,13 @@ def load_settings(filename: str = "settings.json") -> bool:
 
 def _ensure_default_settings_keys():
     """Helper to apply default values to the global SETTINGS dictionary."""
-    global SETTINGS # <-- THIS IS THE FIX
+    global SETTINGS
     if SETTINGS is None: 
         SETTINGS = {}    
         logger.error("_ensure_default_settings_keys called with SETTINGS as None. Initializing to {}.")
 
     default_values = {
-        "BOT_TOKEN": "", "ADMIN_USER_IDS": "", "DEFAULT_LANG": "en",
+        "BOT_TOKEN": "", "ADMIN_USER_IDS": "", "DEFAULT_LANG": "en", "THEME": "default-dark",
         "OVERRIDE_USER_LANG": True, "SEND_PDF_TO_ADMINS": True,
         "APPLICATION_PHOTO_NUMB": 1, "PDF_SETTINGS": {},
         "QUESTIONS_FILE": "questions.json", "LANGUAGES_FILE": "languages.json",
@@ -267,7 +262,7 @@ def load_questions() -> bool:
         file_existed_and_valid_externally = False
     
     if file_existed_and_valid_externally:
-        logger.info(f"Successfully loaded {len(QUESTIONS)} questions.") # General log after decision
+        logger.info(f"Successfully loaded {len(QUESTIONS)} questions.")
     return file_existed_and_valid_externally
 
 

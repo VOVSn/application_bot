@@ -5,10 +5,9 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    /* font-family is set by aurora-theme body */
 }
 
-body { /* Base body from core, theming class will override specifics */
+body { 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -28,7 +27,7 @@ body { /* Base body from core, theming class will override specifics */
 
 .left-panel {
     width: 280px;
-    padding: 20px 20px; /* Consistent horizontal padding */
+    padding: 20px 20px; 
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -57,17 +56,17 @@ body { /* Base body from core, theming class will override specifics */
 .status-display {
     font-size: 16px;
     font-weight: 500;
-    padding: 10px 20px; /* Vertical 10px, Horizontal 20px (matches button) */
-    border-radius: 8px; /* Default, can be overridden by theme */
+    padding: 10px 20px; 
+    border-radius: 8px; 
     text-align: center;
     width: 100%;
     margin-bottom: 5px;
-    box-sizing: border-box; /* Crucial for width calculation */
+    box-sizing: border-box; 
 }
 
-.neumorphic-button { /* Base button style, theme will override visuals */
-    padding: 12px 20px; /* Vertical 12px, Horizontal 20px */
-    border-radius: 12px; /* Default, can be overridden */
+.neumorphic-button { 
+    padding: 12px 20px; 
+    border-radius: 12px; 
     border: none;
     font-weight: 500;
     font-size: 15px;
@@ -75,7 +74,7 @@ body { /* Base body from core, theming class will override specifics */
     transition: all 0.2s ease;
     width: 100%;
     text-align: center;
-    box-sizing: border-box; /* Crucial for width calculation */
+    box-sizing: border-box; 
 }
 .neumorphic-button:disabled {
     cursor: not-allowed;
@@ -83,17 +82,15 @@ body { /* Base body from core, theming class will override specifics */
 
 .settings-group-placeholder {
     width: 100%;
-    /* margin-top: auto; */ /* Removed to allow info buttons to push it up */
     padding-top: 20px;
-    min-height: 10px; /* Reduced */
+    min-height: 10px; 
 }
 
 .log-area {
     flex-grow: 1;
     padding: 15px;
-    border-radius: 15px; /* Default, can be overridden */
+    border-radius: 15px; 
     overflow-y: auto;
-    /* font-family is set by aurora-theme body or specific log rule */
     font-size: 13px;
     line-height: 1.4;
     white-space: pre-wrap;
@@ -116,7 +113,7 @@ body { /* Base body from core, theming class will override specifics */
 
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    display: none; /* JS toggles to flex */
+    display: none; 
     justify-content: center; align-items: center;
     z-index: 1000; padding: 20px; box-sizing: border-box;
 }
@@ -126,12 +123,13 @@ body { /* Base body from core, theming class will override specifics */
     display: flex; flex-direction: column;
     gap: 15px; overflow: hidden;
     padding: 25px;
-    border-radius: 15px; /* Default, theme can override */
+    border-radius: 15px; 
 }
 .modal-content.settings-modal-content {
-    max-width: 780px; /* Adjusted for preventing horizontal scroll */
+    max-width: 780px; 
 }
 .modal-content:not(.settings-modal-content) { max-width: 700px; }
+.modal-content.info-modal-content { max-width: 550px; } 
 .modal-content h2 { text-align: center; margin-bottom: 10px; font-size: 20px; flex-shrink: 0; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0; padding-top: 10px; }
 .questions-modal-bottom-actions { justify-content: space-between; align-items: center; }
@@ -141,6 +139,13 @@ body { /* Base body from core, theming class will override specifics */
     padding: 8px 10px; border-radius: 8px; font-size: 14px;
 }
 #settings-modal-theme-select { width: auto; min-width: 200px; }
+.info-modal-text-content { 
+    white-space: pre-wrap; 
+    max-height: 60vh;
+    overflow-y: auto;
+    text-align: left; 
+    line-height: 1.6;
+}
 
 
 .questions-table-container { flex-grow: 1; overflow-y: auto; border-radius: 8px; min-height: 150px; border: 1px solid; }
@@ -159,7 +164,7 @@ body { /* Base body from core, theming class will override specifics */
 .tab-button { padding: 10px 15px; cursor: pointer; border: none; background-color: transparent; font-size: 16px; font-weight: 500; transition: color 0.2s, border-bottom 0.2s; border-bottom: 3px solid transparent; margin-bottom: -1px; outline: none; }
 .tab-content {
     display: none; flex-grow: 1; overflow-y: auto;
-    padding: 5px 5px 5px 5px; /* Adjusted for preventing horizontal scroll */
+    padding: 5px 5px 5px 5px; 
 }
 .tab-content.active-tab { display: block; }
 .settings-form-container { display: flex; flex-direction: column; gap: 18px; }
@@ -174,8 +179,8 @@ body { /* Base body from core, theming class will override specifics */
 #PdfSettingsTab .form-group .neumorphic-input.modal-input, #AdminSettingsTab .form-group .neumorphic-input.modal-input { width: 100%; }
 #PdfSettingsTab .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Adjusted */
-    gap: 15px; /* Adjusted */
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+    gap: 15px; 
 }
 #PdfSettingsTab .form-group.full-width-checkbox { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
 .pdf-specific-toggle-group label:first-child { flex-grow: 1; margin-right: 10px; }
@@ -188,16 +193,25 @@ body { /* Base body from core, theming class will override specifics */
 .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; border-radius: 50%; transition: .4s; }
 input:checked + .toggle-slider:before { transform: translateX(24px); }
 
-.questions-table-container::-webkit-scrollbar, .tab-content::-webkit-scrollbar, .log-area::-webkit-scrollbar { width: 8px; }
-.questions-table-container::-webkit-scrollbar-track, .tab-content::-webkit-scrollbar-track, .log-area::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
+.questions-table-container::-webkit-scrollbar, 
+.tab-content::-webkit-scrollbar, 
+.log-area::-webkit-scrollbar,
+.info-modal-text-content::-webkit-scrollbar { 
+    width: 8px; 
+}
+.questions-table-container::-webkit-scrollbar-track, 
+.tab-content::-webkit-scrollbar-track, 
+.log-area::-webkit-scrollbar-track,
+.info-modal-text-content::-webkit-scrollbar-track { 
+    background: transparent; margin: 5px 0; 
+}
 
-/* NEW Info Buttons Layout */
 .bottom-info-buttons {
     display: flex;
     justify-content: flex-start;
     gap: 10px;
     width: 100%;
-    margin-top: auto; /* Pushes this to the bottom */
+    margin-top: auto; 
     padding-top: 15px;
 }
 
@@ -291,9 +305,8 @@ body.aurora-theme {
     background: transparent !important;
     transform: none !important;
 }
-/* Specific styling for icon buttons in Aurora */
 .aurora-theme .neumorphic-button.icon-button {
-    border-radius: 50%; /* Circular icon buttons */
+    border-radius: 50%; 
     box-shadow: 0 0 8px rgba(100, 180, 255, 0.2), inset 0 0 4px rgba(100, 180, 255, 0.1);
 }
 .aurora-theme .neumorphic-button.icon-button:hover:not(:disabled) {
@@ -397,6 +410,11 @@ body.aurora-theme {
 .aurora-theme input:checked + .toggle-slider { background: rgba(80,180,150,0.5); border-color: rgba(80,180,150,0.4); }
 .aurora-theme input:checked + .toggle-slider:before { background: rgba(100,220,180,0.8); box-shadow: 0 0 5px rgba(100,220,180,0.4); }
 
-/* .aurora-theme .bottom-info-buttons { border-top: 1px solid rgba(100, 180, 255, 0.2); } */
 .aurora-theme .app-version { color: #a8c0d8; opacity: 0.6; }
+
+/* Scrollbar for info modal body in aurora theme */
+.aurora-theme .modal-content.info-modal-content { max-width: 550px; }
+.aurora-theme .info-modal-text-content { font-family: 'Raleway', sans-serif; }
+.aurora-theme .info-modal-text-content::-webkit-scrollbar-thumb { background-color: rgba(70,130,180,0.4); border-radius: 4px; }
+.aurora-theme .info-modal-text-content::-webkit-scrollbar-track { background: transparent; }
 /* --- END: Aurora Dreams Theme Specific Styles --- */

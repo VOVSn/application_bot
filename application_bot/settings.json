@@ -17,6 +17,7 @@
     "HTTP_POOL_TIMEOUT": 15.0,
     "OVERRIDE_USER_LANG": true,
     "DEFAULT_LANG": "en",
+    "THEME": "default-dark",
     "PDF_SETTINGS": {
         "page_width_mm": 210.0,
         "page_height_mm": 297.0,

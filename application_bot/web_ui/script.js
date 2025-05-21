@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function () {
         stopButton: document.getElementById('stop-button'),
         openApplicationsFolderButton: document.getElementById('open-applications-folder-button'),
         editQuestionsButton: document.getElementById('edit-questions-button'),
-        // Old editSettingsButton removed
 
         statusDisplayLabelPrefix: document.getElementById('gui_status_label_prefix'),
         statusMessageContent: document.getElementById('status-message-content'),
@@ -56,34 +55,35 @@ document.addEventListener('DOMContentLoaded', function () {
         mainStyleSheet: document.getElementById('main-stylesheet'),
         themeLinkMemphis: document.getElementById('theme-link-memphis'),
         themeLinkAurora: document.getElementById('theme-link-aurora'),
+        themeLinkNavy: document.getElementById('theme-link-navy'),
 
         // Info and Settings Buttons
         helpButton: document.getElementById('help-button'),
         aboutButton: document.getElementById('about-button'),
-        settingsIconButton: document.getElementById('settings-icon-button') // New settings icon button
-        // appVersionDisplay removed
+        settingsIconButton: document.getElementById('settings-icon-button'),
+
+        // Generic Info Modal Elements
+        infoModal: document.getElementById('info-modal'),
+        infoModalTitle: document.getElementById('info-modal-title'),
+        infoModalBody: document.getElementById('info-modal-body'),
+        infoModalCloseButton: document.getElementById('info-modal-close-button')
     };
 
     let currentMaxLogLines = 100;
     let currentGuiTranslations = {};
     let statusPrefix = "Status: ";
     let currentQuestionsData = [];
-    let currentFetchedSettings = {};
-
-    if (uiElements.logoImage) {
-        const originalSrc = uiElements.logoImage.getAttribute('src');
-        if (originalSrc) {
-            const basePath = originalSrc.split('?')[0];
-            uiElements.logoImage.src = `${basePath}?t=${new Date().getTime()}`;
-        }
-    }
+    let currentFetchedSettings = { THEME: 'default-dark', DEFAULT_LANG: 'en' }; // Initialize with defaults
 
     function applyTheme(themeValue) {
+        if (!themeValue) themeValue = 'default-dark'; // Fallback if undefined
+
         if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = true;
         if (uiElements.themeLinkMemphis) uiElements.themeLinkMemphis.disabled = true;
         if (uiElements.themeLinkAurora) uiElements.themeLinkAurora.disabled = true;
+        if (uiElements.themeLinkNavy) uiElements.themeLinkNavy.disabled = true;
 
-        document.body.className = '';
+        document.body.className = ''; 
 
         switch (themeValue) {
             case 'default-dark':
@@ -102,14 +102,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (uiElements.themeLinkAurora) uiElements.themeLinkAurora.disabled = false;
                 document.body.classList.add('aurora-theme');
                 break;
-            default:
+            case 'navy-formal':
+                if (uiElements.themeLinkNavy) uiElements.themeLinkNavy.disabled = false;
+                document.body.classList.add('navy-formal-theme');
+                break;
+            default: 
                 if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = false;
                 document.body.classList.add('dark-mode');
                 themeValue = 'default-dark';
                 break;
         }
-        localStorage.setItem('selectedTheme', themeValue);
+        localStorage.setItem('selectedTheme', themeValue); // Persist to localStorage
         if(uiElements.settingsModalThemeSelect) uiElements.settingsModalThemeSelect.value = themeValue;
+        currentFetchedSettings.THEME = themeValue; // Update current in-memory settings
+    }
+    
+    // Apply stored theme immediately (before pywebviewready)
+    applyTheme(localStorage.getItem('selectedTheme'));
+    
+    if (uiElements.logoImage) {
+        const originalSrc = uiElements.logoImage.getAttribute('src');
+        if (originalSrc) {
+            const basePath = originalSrc.split('?')[0];
+            uiElements.logoImage.src = `${basePath}?t=${new Date().getTime()}`;
+        }
     }
     
     if (uiElements.settingsModalThemeSelect) {
@@ -131,8 +147,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (el.tagName === 'OPTION') {
                     el.textContent = translations[key];
                 } else if (el.tagName === 'INPUT' && (el.type === 'button' || el.type === 'submit') || el.tagName === 'BUTTON') {
-                    if (!el.classList.contains('icon-button')) { // Don't override text content for icon buttons
+                    if (!el.classList.contains('icon-button') && el.id !== 'info-modal-close-button') { 
                         el.textContent = translations[key];
+                    } else if (el.id === 'info-modal-close-button') {
+                        el.textContent = translations.gui_modal_info_ok_button || "OK";
                     }
                 } else if (el.tagName === 'LABEL' || el.tagName === 'H2' || el.tagName === 'TH' || el.id === 'gui_title_text') {
                      el.textContent = translations[key];
@@ -144,15 +162,11 @@ document.addEventListener('DOMContentLoaded', function () {
             populateQuestionsTable(currentQuestionsData);
         }
 
-        // Update tooltips for help/about/settings buttons
         if (uiElements.helpButton) uiElements.helpButton.title = currentGuiTranslations.gui_help_button_title || "Help";
         if (uiElements.aboutButton) uiElements.aboutButton.title = currentGuiTranslations.gui_about_button_title || "About";
         if (uiElements.settingsIconButton) uiElements.settingsIconButton.title = currentGuiTranslations.gui_settings_button_title || "Settings";
+        if (uiElements.infoModalCloseButton) uiElements.infoModalCloseButton.textContent = currentGuiTranslations.gui_modal_info_ok_button || "OK";
     };
-
-    uiElements.settingsModalLangToggle.addEventListener('change', function() {
-        // Language change is handled on modal save now
-    });
 
     window.setSystemLanguageToggleState = function(langCode) {
         if (uiElements.settingsModalLangToggle) {
@@ -181,41 +195,43 @@ document.addEventListener('DOMContentLoaded', function () {
             window.pywebview.api.open_applications_folder();
         }
     });
+    
+    // Generic Info Modal Logic
+    function showInfoModal(title, message) {
+        if(uiElements.infoModalTitle) uiElements.infoModalTitle.textContent = title;
+        if(uiElements.infoModalBody) uiElements.infoModalBody.textContent = message;
+        if(uiElements.infoModal) uiElements.infoModal.style.display = 'flex';
+        if(uiElements.infoModalCloseButton) uiElements.infoModalCloseButton.focus();
+    }
 
-    uiElements.settingsModalLogLinesInput.addEventListener('change', function() {
-        // Log lines change is handled on modal save now
+    if (uiElements.infoModalCloseButton) {
+        uiElements.infoModalCloseButton.addEventListener('click', () => {
+            if(uiElements.infoModal) uiElements.infoModal.style.display = 'none';
+        });
+    }
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && uiElements.infoModal && uiElements.infoModal.style.display === 'flex') {
+            uiElements.infoModal.style.display = 'none';
+        }
     });
 
-    // Help and About Button Event Listeners
+
     if (uiElements.helpButton) {
         uiElements.helpButton.addEventListener('click', () => {
             const helpTitle = currentGuiTranslations.gui_help_modal_title || "Help";
-            const helpMessage = (
-                currentGuiTranslations.gui_help_modal_content ||
-                "Application Bot Control - Help:\n\n" +
-                "- Start/Stop Bot: Controls the Telegram bot's operation.\n" +
-                "- Open Applications Folder: Opens the folder where PDF applications are saved.\n" +
-                "- Edit Questions: Modify the questions the bot asks users.\n"   +
-                "- Settings: Configure bot token, admin IDs, PDF options, language, theme, and log lines.\n\n" +
-                "The bot allows users to apply by answering questions and submitting photos, generating a PDF."
-            );
-            alert(`${helpTitle}\n\n${helpMessage}`);
+            const helpMessage = currentGuiTranslations.gui_help_modal_content || "Help content not loaded.";
+            showInfoModal(helpTitle, helpMessage);
         });
     }
 
     if (uiElements.aboutButton) {
         uiElements.aboutButton.addEventListener('click', () => {
             const aboutTitle = currentGuiTranslations.gui_about_modal_title || "About";
-            // Version is now part of the translation string for gui_about_modal_content
-            const aboutMessage = (
-                currentGuiTranslations.gui_about_modal_content ||
-                "Application Bot Control\nVersion: 0.1.1 beta\nAuthor: VOVSN\nGitHub: github.com/vovsn\n\nThis application provides a GUI to manage and configure the Application Telegram Bot."
-            );
-            alert(`${aboutTitle}\n\n${aboutMessage}`);
+            const aboutMessage = currentGuiTranslations.gui_about_modal_content || "About content not loaded.";
+            showInfoModal(aboutTitle, aboutMessage);
         });
     }
 
-    // Event listener for the new Settings Icon Button
     if (uiElements.settingsIconButton) {
         uiElements.settingsIconButton.addEventListener('click', () => {
             openSettingsModal();
@@ -276,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert(currentGuiTranslations.gui_alert_questions_load_failed || "Could not load questions for editing.");
             });
         } else {
-            alert("Error: UI cannot connect to Python to get questions.");
+             alert("Error: UI cannot connect to Python to get questions.");
         }
     }
     function closeQuestionsModal() {
@@ -349,7 +365,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (window.pywebview && window.pywebview.api.save_questions) {
             window.pywebview.api.save_questions(updatedQuestions).then(success => {
                 if (success) {
-                    alert(currentGuiTranslations.gui_alert_questions_saved || "Questions saved successfully!");
+                    showInfoModal(
+                        currentGuiTranslations.gui_alert_questions_saved_title || "Questions Updated",
+                        currentGuiTranslations.gui_alert_questions_saved || "Questions saved successfully!"
+                    );
                     closeQuestionsModal();
                 } else {
                     alert(currentGuiTranslations.gui_alert_questions_save_failed || "Failed to save questions. Check logs.");
@@ -382,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function openSettingsModal() {
         if (window.pywebview && window.pywebview.api.get_all_settings) {
             window.pywebview.api.get_all_settings().then(settings => {
-                currentFetchedSettings = settings || {};
+                currentFetchedSettings = settings || { THEME: 'default-dark', DEFAULT_LANG: 'en' }; // Ensure defaults
                 populateAllSettingsForm(currentFetchedSettings);
                 uiElements.settingsModal.style.display = 'flex';
                 if (uiElements.basicSettingsTabButton) {
@@ -403,9 +422,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function populateAllSettingsForm(settings) {
         uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
-        
-        const savedTheme = localStorage.getItem('selectedTheme') || 'default-dark';
-        uiElements.settingsModalThemeSelect.value = savedTheme;
+        uiElements.settingsModalThemeSelect.value = settings.THEME || 'default-dark'; // Use fetched theme
+        applyTheme(settings.THEME || 'default-dark'); // Apply it too
 
         uiElements.settingsModalLangToggle.checked = (settings.DEFAULT_LANG === 'ru');
         uiElements.settingsOverrideUserLangToggle.checked = settings.OVERRIDE_USER_LANG === undefined ? true : settings.OVERRIDE_USER_LANG;
@@ -430,7 +448,6 @@ document.addEventListener('DOMContentLoaded', function () {
         uiElements.adminUserIdsInput.value = settings.ADMIN_USER_IDS || "";
     }
 
-    // Old large settings button event listener removed
     uiElements.cancelAllSettingsButton.addEventListener('click', closeSettingsModal);
 
     uiElements.saveAllSettingsButton.addEventListener('click', () => {
@@ -442,17 +459,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         } else {
+            // If invalid, revert to current value in UI
             uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
         }
 
         const newLang = uiElements.settingsModalLangToggle.checked ? 'ru' : 'en';
         let languageChangePromise = Promise.resolve(); 
+        // Only call if language actually changed from what Python knows (currentFetchedSettings.DEFAULT_LANG)
         if (newLang !== currentFetchedSettings.DEFAULT_LANG) {
             if (window.pywebview && window.pywebview.api.set_system_language) {
                 languageChangePromise = window.pywebview.api.set_system_language(newLang).then(response => {
                     if (response && response.translations) applyGuiTranslations(response.translations);
                     if (response && response.new_lang) {
-                        currentFetchedSettings.DEFAULT_LANG = response.new_lang;
+                        currentFetchedSettings.DEFAULT_LANG = response.new_lang; // Update our reference
                          setSystemLanguageToggleState(response.new_lang);
                     }
                 }).catch(err => console.error("Error setting system language from modal:", err));
@@ -461,6 +480,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         languageChangePromise.then(() => {
             const settingsToSave = {
+                THEME: uiElements.settingsModalThemeSelect.value, // Save selected theme
                 OVERRIDE_USER_LANG: uiElements.settingsOverrideUserLangToggle.checked,
                 APPLICATION_PHOTO_NUMB: parseInt(uiElements.pdfAppPhotoNumbInput.value, 10),
                 SEND_PDF_TO_ADMINS: uiElements.pdfSendToAdminsToggle.checked,
@@ -482,6 +502,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ADMIN_USER_IDS: uiElements.adminUserIdsInput.value.trim()
             };
 
+            // Frontend Validations (examples)
             if (!settingsToSave.BOT_TOKEN) {
                 alert(currentGuiTranslations.gui_alert_bot_token_empty || "Bot Token cannot be empty.");
                 uiElements.adminBotTokenInput.focus(); return;
@@ -490,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert(currentGuiTranslations.gui_alert_invalid_photo_numb || "Number of photos must be a non-negative number.");
                 uiElements.pdfAppPhotoNumbInput.focus(); return;
             }
-             if (!settingsToSave.FONT_FILE_PATH) {
+            if (!settingsToSave.FONT_FILE_PATH) {
                 alert(currentGuiTranslations.gui_alert_pdf_font_paths_empty || "Font File Path cannot be empty.");
                 uiElements.pdfFontFilePathInput.focus(); return;
             }
@@ -499,12 +520,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 uiElements.pdfFontNameRegisteredInput.focus(); return;
             }
 
+
             if (window.pywebview && window.pywebview.api.save_all_settings) {
                 window.pywebview.api.save_all_settings(settingsToSave).then(success => {
                     if (success) {
-                        alert(currentGuiTranslations.gui_alert_settings_saved || "Settings saved successfully! Some changes may require a bot restart.");
+                        showInfoModal(
+                            currentGuiTranslations.gui_alert_settings_saved_title || "Settings Update",
+                            currentGuiTranslations.gui_alert_settings_saved || "Settings saved successfully! Some changes may require a bot restart."
+                        );
                         closeSettingsModal();
+                        // Update currentFetchedSettings with what was just successfully saved (especially theme)
+                        currentFetchedSettings.THEME = settingsToSave.THEME; 
+                        // No need to re-apply theme here, as it's already applied by the select's change listener
                     } else {
+                        // Python backend returned false, indicating a save failure not caught by frontend validation
                         alert(currentGuiTranslations.gui_alert_settings_save_failed || "Failed to save some settings. Check logs for details.");
                     }
                 }).catch(err => {
@@ -525,14 +554,16 @@ document.addEventListener('DOMContentLoaded', function () {
              currentFetchedSettings.DEFAULT_LANG = config.currentLang; 
              setSystemLanguageToggleState(config.currentLang);
         }
+        
+        // Set theme from Python's initial config, which should reflect settings.json
+        const themeFromPython = config.currentTheme || 'default-dark';
+        currentFetchedSettings.THEME = themeFromPython;
+        applyTheme(themeFromPython); // This updates localStorage and applies the theme
 
         currentMaxLogLines = config.maxLogLines || 100;
         if(uiElements.settingsModalLogLinesInput) uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
 
         if (config.initialLogs && config.initialLogs.length > 0) addBatchLogMessages(config.initialLogs);
-
-        const savedTheme = localStorage.getItem('selectedTheme') || 'default-dark';
-        applyTheme(savedTheme);
     };
 
     window.addEventListener('pywebviewready', function () {
