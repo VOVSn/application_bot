@@ -69,7 +69,8 @@ def _get_gui_localization_texts(lang_code: str) -> dict:
         "gui_help_button_title", "gui_about_button_title", "gui_settings_button_title",
         "gui_help_modal_title", "gui_help_modal_content",
         "gui_about_modal_title", "gui_about_modal_content",
-        "gui_modal_info_ok_button"
+        "gui_modal_info_ok_button",
+        "gui_logo_label", "gui_logo_default", "gui_logo_abc", "gui_logo_zaya" # Added logo keys
     ]
     if not utils.SETTINGS or not utils.LANGUAGES_CACHE:
          logger.warning("_get_gui_localization_texts: utils.SETTINGS or utils.LANGUAGES_CACHE not yet populated. Using keys as text.")
@@ -236,6 +237,7 @@ class PyWebviewApi:
             logger.critical("GUI API: utils.SETTINGS is unexpectedly None in get_all_settings. This shouldn't happen.")
             return {
                 "OVERRIDE_USER_LANG": True, "DEFAULT_LANG": "en", "THEME": "default-dark",
+                "SELECTED_LOGO": "default", # Added
                 "BOT_TOKEN": "", "ADMIN_USER_IDS": "",
                 "APPLICATION_PHOTO_NUMB": 1, "SEND_PDF_TO_ADMINS": True,
                 "FONT_FILE_PATH": "fonts/DejaVuSans.ttf",
@@ -263,6 +265,7 @@ class PyWebviewApi:
             "OVERRIDE_USER_LANG": utils.SETTINGS.get("OVERRIDE_USER_LANG", True),
             "DEFAULT_LANG": utils.SETTINGS.get("DEFAULT_LANG", "en"),
             "THEME": utils.SETTINGS.get("THEME", "default-dark"),
+            "SELECTED_LOGO": utils.SETTINGS.get("SELECTED_LOGO", "default"), # Added
             "BOT_TOKEN": utils.SETTINGS.get("BOT_TOKEN", ""),
             "ADMIN_USER_IDS": utils.SETTINGS.get("ADMIN_USER_IDS", ""),
             "APPLICATION_PHOTO_NUMB": utils.SETTINGS.get("APPLICATION_PHOTO_NUMB", 1),
@@ -282,6 +285,7 @@ class PyWebviewApi:
 
         utils.SETTINGS["OVERRIDE_USER_LANG"] = bool(new_settings_data.get("OVERRIDE_USER_LANG", True))
         utils.SETTINGS["THEME"] = str(new_settings_data.get("THEME", "default-dark"))
+        utils.SETTINGS["SELECTED_LOGO"] = str(new_settings_data.get("SELECTED_LOGO", "default")) # Added
         # DEFAULT_LANG is handled by set_system_language API call
 
         bot_token = str(new_settings_data.get("BOT_TOKEN", "")).strip()
@@ -539,6 +543,7 @@ class BotGUI:
         initial_config = {
             "currentLang": self.current_language,
             "currentTheme": utils.SETTINGS.get("THEME", "default-dark") if utils.SETTINGS else "default-dark",
+            "currentLogo": utils.SETTINGS.get("SELECTED_LOGO", "default") if utils.SETTINGS else "default", # Added
             "guiTranslations": gui_translations,
             "maxLogLines": self.current_max_log_lines,
             "initialLogs": [html.escape(log_item, quote=False) for log_item in list(self.log_deque)]
@@ -661,7 +666,7 @@ def main_gui_start():
     app_gui.current_language = utils.SETTINGS.get("DEFAULT_LANG", "en") if utils.SETTINGS else "en"
     
     if settings_file_ok:
-        logger.info(f"GUI: Settings loaded. Initial language from settings: {app_gui.current_language}, Theme: {utils.SETTINGS.get('THEME', 'default-dark')}")
+        logger.info(f"GUI: Settings loaded. Initial language: {app_gui.current_language}, Theme: {utils.SETTINGS.get('THEME', 'default-dark')}, Logo: {utils.SETTINGS.get('SELECTED_LOGO', 'default')}")
     else:
         logger.critical("GUI CRITICAL: settings.json was not found or was invalid. GUI is using default values. Functionality may be limited.")
 

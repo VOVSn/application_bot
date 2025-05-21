@@ -155,6 +155,7 @@ def _ensure_default_settings_keys():
 
     default_values = {
         "BOT_TOKEN": "", "ADMIN_USER_IDS": "", "DEFAULT_LANG": "en", "THEME": "default-dark",
+        "SELECTED_LOGO": "default", # Added
         "OVERRIDE_USER_LANG": True, "SEND_PDF_TO_ADMINS": True,
         "APPLICATION_PHOTO_NUMB": 1, "PDF_SETTINGS": {},
         "QUESTIONS_FILE": "questions.json", "LANGUAGES_FILE": "languages.json",

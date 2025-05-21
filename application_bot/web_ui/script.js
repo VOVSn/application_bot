@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Basic Settings Tab Inputs (inside modal)
         settingsModalLogLinesInput: document.getElementById('settings-modal-log-lines-input'),
         settingsModalThemeSelect: document.getElementById('settings-modal-theme-select'),
+        settingsModalLogoSelect: document.getElementById('settings-modal-logo-select'), // Added
         settingsModalLangToggle: document.getElementById('settings-modal-lang-toggle'),
         settingsOverrideUserLangToggle: document.getElementById('settings-override-user-lang-toggle'),
 
@@ -73,10 +74,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentGuiTranslations = {};
     let statusPrefix = "Status: ";
     let currentQuestionsData = [];
-    let currentFetchedSettings = { THEME: 'default-dark', DEFAULT_LANG: 'en' }; // Initialize with defaults
+    let currentFetchedSettings = { THEME: 'default-dark', DEFAULT_LANG: 'en', SELECTED_LOGO: 'default' };
 
     function applyTheme(themeValue) {
-        if (!themeValue) themeValue = 'default-dark'; // Fallback if undefined
+        if (!themeValue) themeValue = 'default-dark'; 
 
         if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = true;
         if (uiElements.themeLinkMemphis) uiElements.themeLinkMemphis.disabled = true;
@@ -112,25 +113,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 themeValue = 'default-dark';
                 break;
         }
-        localStorage.setItem('selectedTheme', themeValue); // Persist to localStorage
+        localStorage.setItem('selectedTheme', themeValue); 
         if(uiElements.settingsModalThemeSelect) uiElements.settingsModalThemeSelect.value = themeValue;
-        currentFetchedSettings.THEME = themeValue; // Update current in-memory settings
+        currentFetchedSettings.THEME = themeValue; 
     }
     
-    // Apply stored theme immediately (before pywebviewready)
     applyTheme(localStorage.getItem('selectedTheme'));
     
-    if (uiElements.logoImage) {
-        const originalSrc = uiElements.logoImage.getAttribute('src');
-        if (originalSrc) {
-            const basePath = originalSrc.split('?')[0];
-            uiElements.logoImage.src = `${basePath}?t=${new Date().getTime()}`;
+    function applyLogo(logoKey) {
+        if (!logoKey) logoKey = 'default';
+        let logoFilename = 'logo.png'; // Default
+        if (logoKey === 'abc') {
+            logoFilename = 'logo_abc.png';
+        } else if (logoKey === 'zaya') {
+            logoFilename = 'logo_zaya.png';
         }
+        if (uiElements.logoImage) {
+            uiElements.logoImage.src = `${logoFilename}?t=${new Date().getTime()}`;
+        }
+        currentFetchedSettings.SELECTED_LOGO = logoKey; 
     }
-    
+
     if (uiElements.settingsModalThemeSelect) {
         uiElements.settingsModalThemeSelect.addEventListener('change', function () {
             applyTheme(this.value); 
+        });
+    }
+
+    if (uiElements.settingsModalLogoSelect) { // Added event listener for logo select
+        uiElements.settingsModalLogoSelect.addEventListener('change', function () {
+            applyLogo(this.value);
         });
     }
 
@@ -196,7 +208,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
-    // Generic Info Modal Logic
     function showInfoModal(title, message) {
         if(uiElements.infoModalTitle) uiElements.infoModalTitle.textContent = title;
         if(uiElements.infoModalBody) uiElements.infoModalBody.textContent = message;
@@ -401,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function openSettingsModal() {
         if (window.pywebview && window.pywebview.api.get_all_settings) {
             window.pywebview.api.get_all_settings().then(settings => {
-                currentFetchedSettings = settings || { THEME: 'default-dark', DEFAULT_LANG: 'en' }; // Ensure defaults
+                currentFetchedSettings = settings || { THEME: 'default-dark', DEFAULT_LANG: 'en', SELECTED_LOGO: 'default' };
                 populateAllSettingsForm(currentFetchedSettings);
                 uiElements.settingsModal.style.display = 'flex';
                 if (uiElements.basicSettingsTabButton) {
@@ -422,8 +433,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function populateAllSettingsForm(settings) {
         uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
-        uiElements.settingsModalThemeSelect.value = settings.THEME || 'default-dark'; // Use fetched theme
-        applyTheme(settings.THEME || 'default-dark'); // Apply it too
+        
+        uiElements.settingsModalThemeSelect.value = settings.THEME || 'default-dark';
+        applyTheme(settings.THEME || 'default-dark'); 
+
+        uiElements.settingsModalLogoSelect.value = settings.SELECTED_LOGO || 'default'; // Added
+        applyLogo(settings.SELECTED_LOGO || 'default'); // Added: Apply logo when modal opens
 
         uiElements.settingsModalLangToggle.checked = (settings.DEFAULT_LANG === 'ru');
         uiElements.settingsOverrideUserLangToggle.checked = settings.OVERRIDE_USER_LANG === undefined ? true : settings.OVERRIDE_USER_LANG;
@@ -459,19 +474,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         } else {
-            // If invalid, revert to current value in UI
             uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
         }
 
         const newLang = uiElements.settingsModalLangToggle.checked ? 'ru' : 'en';
         let languageChangePromise = Promise.resolve(); 
-        // Only call if language actually changed from what Python knows (currentFetchedSettings.DEFAULT_LANG)
         if (newLang !== currentFetchedSettings.DEFAULT_LANG) {
             if (window.pywebview && window.pywebview.api.set_system_language) {
                 languageChangePromise = window.pywebview.api.set_system_language(newLang).then(response => {
                     if (response && response.translations) applyGuiTranslations(response.translations);
                     if (response && response.new_lang) {
-                        currentFetchedSettings.DEFAULT_LANG = response.new_lang; // Update our reference
+                        currentFetchedSettings.DEFAULT_LANG = response.new_lang; 
                          setSystemLanguageToggleState(response.new_lang);
                     }
                 }).catch(err => console.error("Error setting system language from modal:", err));
@@ -480,7 +493,8 @@ document.addEventListener('DOMContentLoaded', function () {
         
         languageChangePromise.then(() => {
             const settingsToSave = {
-                THEME: uiElements.settingsModalThemeSelect.value, // Save selected theme
+                THEME: uiElements.settingsModalThemeSelect.value, 
+                SELECTED_LOGO: uiElements.settingsModalLogoSelect.value, // Added
                 OVERRIDE_USER_LANG: uiElements.settingsOverrideUserLangToggle.checked,
                 APPLICATION_PHOTO_NUMB: parseInt(uiElements.pdfAppPhotoNumbInput.value, 10),
                 SEND_PDF_TO_ADMINS: uiElements.pdfSendToAdminsToggle.checked,
@@ -502,7 +516,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 ADMIN_USER_IDS: uiElements.adminUserIdsInput.value.trim()
             };
 
-            // Frontend Validations (examples)
             if (!settingsToSave.BOT_TOKEN) {
                 alert(currentGuiTranslations.gui_alert_bot_token_empty || "Bot Token cannot be empty.");
                 uiElements.adminBotTokenInput.focus(); return;
@@ -529,11 +542,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             currentGuiTranslations.gui_alert_settings_saved || "Settings saved successfully! Some changes may require a bot restart."
                         );
                         closeSettingsModal();
-                        // Update currentFetchedSettings with what was just successfully saved (especially theme)
                         currentFetchedSettings.THEME = settingsToSave.THEME; 
-                        // No need to re-apply theme here, as it's already applied by the select's change listener
+                        currentFetchedSettings.SELECTED_LOGO = settingsToSave.SELECTED_LOGO; // Update after successful save
+                        applyLogo(settingsToSave.SELECTED_LOGO); // Apply the saved logo
                     } else {
-                        // Python backend returned false, indicating a save failure not caught by frontend validation
                         alert(currentGuiTranslations.gui_alert_settings_save_failed || "Failed to save some settings. Check logs for details.");
                     }
                 }).catch(err => {
@@ -555,10 +567,15 @@ document.addEventListener('DOMContentLoaded', function () {
              setSystemLanguageToggleState(config.currentLang);
         }
         
-        // Set theme from Python's initial config, which should reflect settings.json
         const themeFromPython = config.currentTheme || 'default-dark';
         currentFetchedSettings.THEME = themeFromPython;
-        applyTheme(themeFromPython); // This updates localStorage and applies the theme
+        applyTheme(themeFromPython); 
+
+        const logoFromPython = config.currentLogo || 'default'; // Added
+        currentFetchedSettings.SELECTED_LOGO = logoFromPython; // Added
+        applyLogo(logoFromPython); // Added
+        if (uiElements.settingsModalLogoSelect) uiElements.settingsModalLogoSelect.value = logoFromPython; // Added
+
 
         currentMaxLogLines = config.maxLogLines || 100;
         if(uiElements.settingsModalLogLinesInput) uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
