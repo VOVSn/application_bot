@@ -97,7 +97,13 @@
         "gui_theme_default_light": "По умолчанию (Светлая)",
         "gui_theme_memphis": "Мемфис",
         "gui_theme_aurora_dreams": "Северное Сияние",
-        "gui_dark_theme_label": "Тёмная тема"
+        "gui_dark_theme_label": "Тёмная тема",
+        "gui_help_button_title": "Помощь",
+        "gui_about_button_title": "О программе",
+        "gui_help_modal_title": "Справка - Управление Ботом",
+        "gui_help_modal_content": "Управление Ботом Заявок - Справка:\n\n- Запустить/Остановить Бота: Управляет работой Telegram бота.\n- Открыть Папку Заявок: Открывает папку, где сохраняются PDF заявки.\n- Редакт. Вопросы: Изменение вопросов, которые бот задает пользователям.\n- Настройки: Конфигурация токена бота, ID администраторов, опций PDF, языка, темы и строк лога.\n\nБот позволяет пользователям подавать заявки, отвечая на вопросы и отправляя фотографии, после чего генерируется PDF.",
+        "gui_about_modal_title": "О программе - Управление Ботом",
+        "gui_about_modal_content": "Управление Ботом Заявок\nВерсия: 0.1.1 beta\nАвтор: VOVSN\nGitHub: github.com/vovsn\n\nЭто приложение предоставляет графический интерфейс для управления и настройки Telegram Бота Заявок."
     },
     "en": {
         "start_message": "Hello! 👋 This is an application bot.\nUse /apply to start.",
@@ -197,6 +203,12 @@
         "gui_theme_default_light": "Default Light",
         "gui_theme_memphis": "Memphis",
         "gui_theme_aurora_dreams": "Aurora Dreams",
-        "gui_dark_theme_label": "Dark Theme"
+        "gui_dark_theme_label": "Dark Theme",
+        "gui_help_button_title": "Help",
+        "gui_about_button_title": "About",
+        "gui_help_modal_title": "Help - Bot Control",
+        "gui_help_modal_content": "Application Bot Control - Help:\n\n- Start/Stop Bot: Controls the Telegram bot's operation.\n- Open Applications Folder: Opens the folder where PDF applications are saved.\n- Edit Questions: Modify the questions the bot asks users.\n- Settings: Configure bot token, admin IDs, PDF options, language, theme, and log lines.\n\nThe bot allows users to apply by answering questions and submitting photos, generating a PDF.",
+        "gui_about_modal_title": "About - Bot Control",
+        "gui_about_modal_content": "Application Bot Control\nVersion: 0.1.1 beta\nAuthor: VOVSN\nGitHub: github.com/vovsn\n\nThis application provides a GUI to manage and configure the Application Telegram Bot."
     }
 }

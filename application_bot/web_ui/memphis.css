@@ -83,9 +83,9 @@ body { /* Base body from core, theming class will override specifics */
 
 .settings-group-placeholder {
     width: 100%;
-    margin-top: auto;
+    /* margin-top: auto; */ /* Removed to allow info buttons to push it up */
     padding-top: 20px;
-    min-height: 50px;
+    min-height: 10px; /* Reduced */
 }
 
 .log-area {
@@ -142,6 +142,7 @@ body { /* Base body from core, theming class will override specifics */
 }
 #settings-modal-theme-select { width: auto; min-width: 200px; }
 
+
 .questions-table-container { flex-grow: 1; overflow-y: auto; border-radius: 8px; min-height: 150px; border: 1px solid; }
 #questions-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 #questions-table th, #questions-table td { padding: 10px; text-align: left; vertical-align: middle; word-wrap: break-word; border-bottom: 1px solid; }
@@ -189,6 +190,35 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 .questions-table-container::-webkit-scrollbar, .tab-content::-webkit-scrollbar, .log-area::-webkit-scrollbar { width: 8px; }
 .questions-table-container::-webkit-scrollbar-track, .tab-content::-webkit-scrollbar-track, .log-area::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
+
+/* NEW Info Buttons Layout */
+.bottom-info-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin-top: auto; /* Pushes this to the bottom */
+    padding-top: 15px;
+}
+
+.neumorphic-button.icon-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.app-version {
+    width: 100%;
+    text-align: center;
+    font-size: 0.75em;
+    opacity: 0.7;
+    padding-top: 8px;
+    padding-bottom: 5px;
+}
 /* --- END: Core Layout CSS --- */
 
 
@@ -229,7 +259,6 @@ body.memphis-theme {
     box-shadow: 5px 5px 0px #000000; /* Hard shadow */
     font-weight: bold;
     text-transform: uppercase;
-    /* padding: 15px 20px; */ /* Padding is from core */
     font-family: inherit; /* Inherit from body.memphis-theme */
 }
 .memphis-theme .neumorphic-button:hover:not(:disabled) {
@@ -247,6 +276,20 @@ body.memphis-theme {
     border-color: #a0a0a0 !important;
     transform: none !important;
 }
+/* Specific styling for icon buttons in Memphis */
+.memphis-theme .neumorphic-button.icon-button {
+    background-color: #FFFF00; /* Yellow */
+    color: #000000; /* Black icon */
+    border: 2px solid #000000;
+    box-shadow: 3px 3px 0px #000000;
+    border-radius: 4px; /* Slightly less round for small buttons */
+    text-transform: none; /* No uppercase for icon buttons */
+}
+.memphis-theme .neumorphic-button.icon-button:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px #000000;
+}
+
 
 .memphis-theme .log-area {
     background-color: #FFFFFF;
@@ -264,7 +307,6 @@ body.memphis-theme {
     background-color: #00FFFF; /* Cyan */
     color: #000000;
     border: 3px solid #000000;
-    /* padding: 8px; */ /* Padding is from core */
     font-weight: bold;
     border-radius: 0;
 }
@@ -287,23 +329,24 @@ body.memphis-theme {
 .memphis-theme .modal-content h2 { color: #FF69B4; text-shadow: 2px 2px #00FFFF; font-weight: bold; }
 
 .memphis-theme #settings-modal-theme-select,
-.memphis-theme .neumorphic-input.modal-input,
-.memphis-theme .modal-button { /* modal-button inherits from .neumorphic-button so careful with specificity */
+.memphis-theme .neumorphic-input.modal-input {
     border-radius: 0;
     border: 2px solid #000;
     box-shadow: 3px 3px 0 #cccccc;
     font-family: inherit;
-    background-color: #fff; /* Default background for inputs/selects in modal */
+    background-color: #fff;
     color: #000;
 }
-/* Explicitly style modal buttons separate from general .neumorphic-button for this theme */
+
+/* Explicitly style modal action buttons separate from general .neumorphic-button for this theme */
 .memphis-theme .modal-actions .neumorphic-button {
     background-color: #FFD700; /* Gold */
     color: #000;
     font-weight: bold;
-    border: 2px solid #000; /* Consistent border for modal buttons */
-    box-shadow: 3px 3px 0 #ccc; /* Consistent shadow */
-    text-transform: none; /* Revert uppercase from general button if needed */
+    border: 2px solid #000;
+    box-shadow: 3px 3px 0 #ccc;
+    text-transform: none; /* Revert uppercase for modal buttons if needed */
+    border-radius: 0; /* Ensure sharp edges */
 }
 .memphis-theme .modal-actions .neumorphic-button:hover:not(:disabled) { background-color: #ffec80; }
 .memphis-theme .modal-actions .neumorphic-button.primary { background-color: #00FFFF; color: #000; }
@@ -342,4 +385,7 @@ body.memphis-theme {
 .memphis-theme .toggle-slider:before { background: #FFFF00; border: 1px solid #000; border-radius: 0; height: 16px; width: 16px; left: 4px; bottom: 4px;}
 .memphis-theme input:checked + .toggle-slider { background: #FF69B4; }
 .memphis-theme input:checked + .toggle-slider:before { background: #00FFFF; transform: translateX(22px); }
+
+/* .memphis-theme .bottom-info-buttons { border-top: 2px dashed #FF69B4; } */
+.memphis-theme .app-version { color: #000; opacity: 0.8; }
 /* --- END: Memphis Theme Specific Styles --- */

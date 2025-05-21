@@ -28,8 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Basic Settings Tab Inputs (inside modal)
         settingsModalLogLinesInput: document.getElementById('settings-modal-log-lines-input'),
-        settingsModalThemeSelect: document.getElementById('settings-modal-theme-select'), // New theme selector
-        // settingsModalDarkModeToggle: document.getElementById('settings-modal-dark-mode-toggle'), // REMOVED
+        settingsModalThemeSelect: document.getElementById('settings-modal-theme-select'),
         settingsModalLangToggle: document.getElementById('settings-modal-lang-toggle'),
         settingsOverrideUserLangToggle: document.getElementById('settings-override-user-lang-toggle'),
 
@@ -57,6 +56,11 @@ document.addEventListener('DOMContentLoaded', function () {
         mainStyleSheet: document.getElementById('main-stylesheet'),
         themeLinkMemphis: document.getElementById('theme-link-memphis'),
         themeLinkAurora: document.getElementById('theme-link-aurora'),
+
+        // Info Buttons
+        helpButton: document.getElementById('help-button'),
+        aboutButton: document.getElementById('about-button'),
+        appVersionDisplay: document.getElementById('app-version-display')
     };
 
     let currentMaxLogLines = 100;
@@ -74,13 +78,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function applyTheme(themeValue) {
-        // Disable all theme-specific stylesheets first
         if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = true;
         if (uiElements.themeLinkMemphis) uiElements.themeLinkMemphis.disabled = true;
         if (uiElements.themeLinkAurora) uiElements.themeLinkAurora.disabled = true;
 
-        // Remove existing theme classes from body
-        document.body.className = ''; // Clear all body classes first
+        document.body.className = '';
 
         switch (themeValue) {
             case 'default-dark':
@@ -99,10 +101,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (uiElements.themeLinkAurora) uiElements.themeLinkAurora.disabled = false;
                 document.body.classList.add('aurora-theme');
                 break;
-            default: // Fallback to default dark
+            default:
                 if (uiElements.mainStyleSheet) uiElements.mainStyleSheet.disabled = false;
                 document.body.classList.add('dark-mode');
-                themeValue = 'default-dark'; // Ensure themeValue is set for localStorage
+                themeValue = 'default-dark';
                 break;
         }
         localStorage.setItem('selectedTheme', themeValue);
@@ -114,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function () {
             applyTheme(this.value); 
         });
     }
-    // REMOVED: uiElements.settingsModalDarkModeToggle event listener
 
     window.applyGuiTranslations = function(translations) {
         currentGuiTranslations = translations;
@@ -129,7 +130,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (el.tagName === 'OPTION') {
                     el.textContent = translations[key];
                 } else if (el.tagName === 'INPUT' && (el.type === 'button' || el.type === 'submit') || el.tagName === 'BUTTON') {
-                    el.textContent = translations[key];
+                    // Don't override text content for icon buttons if they primarily use SVG
+                    if (!el.classList.contains('icon-button')) {
+                        el.textContent = translations[key];
+                    }
                 } else if (el.tagName === 'LABEL' || el.tagName === 'H2' || el.tagName === 'TH' || el.id === 'gui_title_text') {
                      el.textContent = translations[key];
                 }
@@ -139,6 +143,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (uiElements.questionsModal.style.display === 'flex') {
             populateQuestionsTable(currentQuestionsData);
         }
+
+        // Update tooltips for help/about buttons
+        if (uiElements.helpButton) uiElements.helpButton.title = currentGuiTranslations.gui_help_button_title || "Help";
+        if (uiElements.aboutButton) uiElements.aboutButton.title = currentGuiTranslations.gui_about_button_title || "About";
     };
 
     uiElements.settingsModalLangToggle.addEventListener('change', function() {
@@ -150,7 +158,6 @@ document.addEventListener('DOMContentLoaded', function () {
             uiElements.settingsModalLangToggle.checked = (langCode === 'ru');
         }
     };
-
 
     uiElements.startButton.addEventListener('click', () => {
         if (window.pywebview && window.pywebview.api.start_bot_action) {
@@ -178,12 +185,45 @@ document.addEventListener('DOMContentLoaded', function () {
         // Log lines change is handled on modal save now
     });
 
+    // Help and About Button Event Listeners
+    if (uiElements.helpButton) {
+        uiElements.helpButton.addEventListener('click', () => {
+            const helpTitle = currentGuiTranslations.gui_help_modal_title || "Help";
+            const helpMessage = (
+                currentGuiTranslations.gui_help_modal_content ||
+                "Application Bot Control - Help:\n\n" +
+                "- Start/Stop Bot: Controls the Telegram bot's operation.\n" +
+                "- Open Applications Folder: Opens the folder where PDF applications are saved.\n" +
+                "- Edit Questions: Modify the questions the bot asks users.\n"   +
+                "- Settings: Configure bot token, admin IDs, PDF options, language, theme, and log lines.\n\n" +
+                "The bot allows users to apply by answering questions and submitting photos, generating a PDF."
+            );
+            alert(`${helpTitle}\n\n${helpMessage}`);
+        });
+    }
+
+    if (uiElements.aboutButton) {
+        uiElements.aboutButton.addEventListener('click', () => {
+            const aboutTitle = currentGuiTranslations.gui_about_modal_title || "About";
+            const aboutMessage = (
+                currentGuiTranslations.gui_about_modal_content ||
+                "Application Bot Control\n" +
+                "Version: 0.1.1 beta\n" +
+                "Author: VOVSN\n" +
+                "GitHub: github.com/vovsn\n\n" +
+                "This application provides a GUI to manage and configure the Application Telegram Bot."
+            );
+            alert(`${aboutTitle}\n\n${aboutMessage}`);
+        });
+    }
+
+
     window.updateStatus = function (messageKeyOrText, isError = false, isRunning = null, isRawText = false) {
         let messageToDisplay = isRawText ? messageKeyOrText : (currentGuiTranslations[messageKeyOrText] || messageKeyOrText.replace(/_/g, ' '));
         if (uiElements.statusMessageContent) uiElements.statusMessageContent.textContent = messageToDisplay;
         const statusDisplayDiv = document.getElementById('status-display');
         if (statusDisplayDiv) {
-            statusDisplayDiv.className = 'status-display'; // Clear previous status classes
+            statusDisplayDiv.className = 'status-display';
             if (isError) statusDisplayDiv.classList.add('error');
             else if (isRunning === true) statusDisplayDiv.classList.add('running');
             else if (isRunning === false) statusDisplayDiv.classList.add('stopped');
@@ -220,11 +260,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.clearLogs = function() { if(uiElements.logOutput) uiElements.logOutput.innerHTML = ''; };
 
-    // --- Questions Modal Logic (remains the same) ---
     function openQuestionsModal() {
         if (window.pywebview && window.pywebview.api.get_questions) {
             window.pywebview.api.get_questions().then(questions => {
-                currentQuestionsData = JSON.parse(JSON.stringify(questions || [])); // Deep copy
+                currentQuestionsData = JSON.parse(JSON.stringify(questions || []));
                 populateQuestionsTable(currentQuestionsData);
                 uiElements.questionsModal.style.display = 'flex';
             }).catch(err => {
@@ -316,8 +355,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-
-    // --- General Settings Modal Logic ---
     window.openSettingsTab = function(evt, tabName) {
         let i, tabcontent, tablinks;
         tabcontent = uiElements.settingsModal.getElementsByClassName("tab-content");
@@ -360,18 +397,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function populateAllSettingsForm(settings) {
-        // Basic Settings Tab
         uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
         
-        // Set theme selector based on localStorage or default
         const savedTheme = localStorage.getItem('selectedTheme') || 'default-dark';
         uiElements.settingsModalThemeSelect.value = savedTheme;
-        // uiElements.settingsModalDarkModeToggle.checked = document.body.classList.contains('dark-mode'); // REMOVED
 
         uiElements.settingsModalLangToggle.checked = (settings.DEFAULT_LANG === 'ru');
         uiElements.settingsOverrideUserLangToggle.checked = settings.OVERRIDE_USER_LANG === undefined ? true : settings.OVERRIDE_USER_LANG;
 
-        // PDF Settings Tab (remains the same)
         const pdfSettings = settings.PDF_SETTINGS || {};
         uiElements.pdfFontFilePathInput.value = settings.FONT_FILE_PATH || "fonts/DejaVuSans.ttf";
         uiElements.pdfFontNameRegisteredInput.value = pdfSettings.font_name_registered || "CustomUnicodeFont";
@@ -388,7 +421,6 @@ document.addEventListener('DOMContentLoaded', function () {
         uiElements.pdfAppPhotoNumbInput.value = settings.APPLICATION_PHOTO_NUMB === undefined ? 1 : settings.APPLICATION_PHOTO_NUMB;
         uiElements.pdfSendToAdminsToggle.checked = settings.SEND_PDF_TO_ADMINS === undefined ? true : settings.SEND_PDF_TO_ADMINS;
 
-        // Admin Settings Tab (remains the same)
         uiElements.adminBotTokenInput.value = settings.BOT_TOKEN || "";
         uiElements.adminUserIdsInput.value = settings.ADMIN_USER_IDS || "";
     }
@@ -407,9 +439,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             uiElements.settingsModalLogLinesInput.value = currentMaxLogLines;
         }
-
-        // Theme is applied immediately by its own change listener and saved to localStorage.
-        // No need to handle it here explicitly unless sending to Python settings.
 
         const newLang = uiElements.settingsModalLangToggle.checked ? 'ru' : 'en';
         let languageChangePromise = Promise.resolve(); 
@@ -482,10 +511,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-
     window.initializeGui = function(config) {
         console.log("Initializing GUI with config:", config);
-        if (config.guiTranslations) applyGuiTranslations(config.guiTranslations);
+        if (config.guiTranslations) {
+            applyGuiTranslations(config.guiTranslations); // This will now also set button titles
+        }
         if (config.currentLang) {
              currentFetchedSettings.DEFAULT_LANG = config.currentLang; 
              setSystemLanguageToggleState(config.currentLang);
@@ -497,8 +527,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (config.initialLogs && config.initialLogs.length > 0) addBatchLogMessages(config.initialLogs);
 
         const savedTheme = localStorage.getItem('selectedTheme') || 'default-dark';
-        applyTheme(savedTheme); 
-        // Old dark mode specific logic removed
+        applyTheme(savedTheme);
     };
 
     window.addEventListener('pywebviewready', function () {

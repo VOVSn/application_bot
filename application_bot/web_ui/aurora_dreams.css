@@ -83,9 +83,9 @@ body { /* Base body from core, theming class will override specifics */
 
 .settings-group-placeholder {
     width: 100%;
-    margin-top: auto;
+    /* margin-top: auto; */ /* Removed to allow info buttons to push it up */
     padding-top: 20px;
-    min-height: 50px;
+    min-height: 10px; /* Reduced */
 }
 
 .log-area {
@@ -190,6 +190,35 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 .questions-table-container::-webkit-scrollbar, .tab-content::-webkit-scrollbar, .log-area::-webkit-scrollbar { width: 8px; }
 .questions-table-container::-webkit-scrollbar-track, .tab-content::-webkit-scrollbar-track, .log-area::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
+
+/* NEW Info Buttons Layout */
+.bottom-info-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin-top: auto; /* Pushes this to the bottom */
+    padding-top: 15px;
+}
+
+.neumorphic-button.icon-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.app-version {
+    width: 100%;
+    text-align: center;
+    font-size: 0.75em;
+    opacity: 0.7;
+    padding-top: 8px;
+    padding-bottom: 5px;
+}
 /* --- END: Core Layout CSS --- */
 
 
@@ -262,6 +291,15 @@ body.aurora-theme {
     background: transparent !important;
     transform: none !important;
 }
+/* Specific styling for icon buttons in Aurora */
+.aurora-theme .neumorphic-button.icon-button {
+    border-radius: 50%; /* Circular icon buttons */
+    box-shadow: 0 0 8px rgba(100, 180, 255, 0.2), inset 0 0 4px rgba(100, 180, 255, 0.1);
+}
+.aurora-theme .neumorphic-button.icon-button:hover:not(:disabled) {
+    box-shadow: 0 0 12px rgba(120, 200, 255, 0.4), inset 0 0 6px rgba(120, 200, 255, 0.25);
+}
+
 
 .aurora-theme .log-area {
     background-color: rgba(15, 25, 45, 0.75);
@@ -312,14 +350,13 @@ body.aurora-theme {
 .aurora-theme #settings-modal-theme-select:focus,
 .aurora-theme .neumorphic-input.modal-input:focus { border-color: rgba(120,180,240,0.7); box-shadow: 0 0 8px rgba(120,180,240,0.2); }
 
-/* Style modal buttons similar to general buttons but can have slight variations */
 .aurora-theme .modal-actions .neumorphic-button {
     background: transparent;
     border: 1px solid rgba(100,180,255,0.5);
     color: #c0d8f0;
     text-shadow: 0 0 3px rgba(100,200,255,0.4);
-    font-family: inherit; /* ensure it uses the theme font */
-    border-radius: 6px; /* slightly different radius for modal buttons if desired */
+    font-family: inherit;
+    border-radius: 6px;
 }
 .aurora-theme .modal-actions .neumorphic-button:hover:not(:disabled) {
     border-color: rgba(120,200,255,0.8);
@@ -342,7 +379,7 @@ body.aurora-theme {
 .aurora-theme .questions-table-container {
     border-color: rgba(100,150,210,0.35);
     background-color: rgba(20,25,45,0.55);
-    border-radius: 6px; /* Match other aurora elements */
+    border-radius: 6px;
 }
 .aurora-theme .questions-table-container::-webkit-scrollbar-thumb { background-color: rgba(70,130,180,0.4); border-radius: 4px; }
 .aurora-theme .questions-table-container::-webkit-scrollbar-track { background: transparent; }
@@ -359,4 +396,7 @@ body.aurora-theme {
 .aurora-theme .toggle-slider:before { background: rgba(120,160,220,0.7); box-shadow: 0 0 5px rgba(120,160,220,0.3); }
 .aurora-theme input:checked + .toggle-slider { background: rgba(80,180,150,0.5); border-color: rgba(80,180,150,0.4); }
 .aurora-theme input:checked + .toggle-slider:before { background: rgba(100,220,180,0.8); box-shadow: 0 0 5px rgba(100,220,180,0.4); }
+
+/* .aurora-theme .bottom-info-buttons { border-top: 1px solid rgba(100, 180, 255, 0.2); } */
+.aurora-theme .app-version { color: #a8c0d8; opacity: 0.6; }
 /* --- END: Aurora Dreams Theme Specific Styles --- */

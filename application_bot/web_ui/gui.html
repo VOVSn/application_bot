@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- This lang attribute is for the HTML document, not app state -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="gui_title_text">Application Bot Control</title> <!-- ID for title -->
+    <title id="gui_title_text">Application Bot Control</title>
     <link rel="stylesheet" href="style.css" id="main-stylesheet">
     <link rel="stylesheet" id="theme-link-memphis" href="memphis.css" disabled>
     <link rel="stylesheet" id="theme-link-aurora" href="aurora_dreams.css" disabled>
@@ -27,7 +27,30 @@
             <button id="edit-settings-button" class="neumorphic-button" data-i18n-key="gui_settings_button">Settings</button>
             
             <div class="settings-group-placeholder">
+                <!-- This div can be used for spacing or removed if not needed -->
             </div>
+
+            <!-- NEW Info Buttons at the bottom -->
+            <div class="bottom-info-buttons">
+                <button id="help-button" class="neumorphic-button icon-button" title="Help">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="20" height="20">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2V7zm0 4h2v6h-2v-6z"/>
+                        <path d="M11 15h2v2h-2zm0-8h2v6h-2zm-1-3.73c1.68-.02 3.28.49 4.62 1.5L16.04 5.1C14.95 4.3 13.54 3.96 12 4c-1.54.04-2.95.38-4.04 1.1L6.38 3.77C7.72 2.76 9.32 2.25 11 2.27zM12 20c-1.86 0-3.36-.91-4.35-2.24l1.55-1.04c.71.99 1.83 1.78 3.2 1.78s2.49-.79 3.2-1.78l1.55 1.04C15.36 19.09 13.86 20 12 20z" opacity=".3"/> {/* Standard Material Question Mark outline */}
+                        <path d="M12 5c-1.66 0-3 1.34-3 3h2c0-.55.45-1 1-1s1 .45 1 1c0 .38-.21.71-.53.87C11.04 10.09 10 10.79 10 12h2c0-.62.38-1.17.9-1.45.52-.28.9-.82.9-1.42C13.8 7.16 12.98 5 12 5zm-1 8h2v2h-2z"/>{/* Standard Material Question Mark fill */}
+                    </svg>
+                </button>
+                <button id="about-button" class="neumorphic-button icon-button" title="About">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="20" height="20">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-9h2V7h-2v4zm0 4h2v-2h-2v2z"/>
+                        <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" opacity=".3"/> {/* Standard Material Info outline */}
+                        <path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2V7h-2v2z"/> {/* Standard Material Info fill */}
+                    </svg>
+                </button>
+            </div>
+            <div id="app-version-display" class="app-version">v0.1.1 beta</div>
+
         </div>
         <div class="right-panel">
             <div id="log-output" class="log-area">
@@ -78,7 +101,6 @@
                         <label for="settings-modal-log-lines-input" data-i18n-key="gui_log_lines_label">Log Lines:</label>
                         <input type="number" id="settings-modal-log-lines-input" class="neumorphic-input modal-input" value="100" min="10" max="1000" step="10">
                     </div>
-                    <!-- New Theme Selector -->
                     <div class="form-group modal-form-group">
                         <label for="settings-modal-theme-select" data-i18n-key="gui_theme_label">Theme:</label>
                         <select id="settings-modal-theme-select" class="neumorphic-input modal-input" style="width: auto; min-width: 200px;">
@@ -88,7 +110,6 @@
                             <option value="aurora-dreams" data-i18n-key="gui_theme_aurora_dreams">Aurora Dreams</option>
                         </select>
                     </div>
-                    <!-- Old Dark Theme Toggle Removed -->
                     <div class="form-group modal-form-group">
                         <label for="settings-modal-lang-toggle" data-i18n-key="gui_lang_toggle_label">System Language (En/Ru):</label>
                         <label class="toggle-switch settings-toggle">
@@ -106,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- PDF Settings Tab Content (remains the same) -->
+            <!-- PDF Settings Tab Content -->
             <div id="PdfSettingsTab" class="tab-content">
                 <div class="settings-form-container">
                     <div class="form-grid">
@@ -179,7 +200,7 @@
                 </div>
             </div>
 
-            <!-- Administration Tab Content (remains the same) -->
+            <!-- Administration Tab Content -->
             <div id="AdminSettingsTab" class="tab-content">
                  <div class="settings-form-container">
                     <div class="form-group">

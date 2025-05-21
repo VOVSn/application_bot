@@ -83,9 +83,9 @@ body {
 
 .settings-group-placeholder {
     width: 100%;
-    margin-top: auto;
-    padding-top: 20px;
-    min-height: 50px;
+    /* margin-top: auto; This is removed to allow info buttons to push it up */
+    padding-top: 20px; /* Keep some space if needed */
+    min-height: 10px; /* Reduced, as it's just a spacer now */
 }
 
 .log-area {
@@ -190,13 +190,42 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 .questions-table-container::-webkit-scrollbar, .tab-content::-webkit-scrollbar, .log-area::-webkit-scrollbar { width: 8px; }
 .questions-table-container::-webkit-scrollbar-track, .tab-content::-webkit-scrollbar-track, .log-area::-webkit-scrollbar-track { background: transparent; margin: 5px 0; }
+
+/* NEW Info Buttons Layout */
+.bottom-info-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin-top: auto; /* Pushes this to the bottom */
+    padding-top: 15px;
+}
+
+.neumorphic-button.icon-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.app-version {
+    width: 100%;
+    text-align: center;
+    font-size: 0.75em;
+    opacity: 0.7;
+    padding-top: 8px;
+    padding-bottom: 5px;
+}
 /* --- END: Core Layout CSS --- */
 
 
 /* --- START: Light Mode Specifics --- */
 body.light-mode { background-color: #e8e3d9; color: #5a5346; }
 .light-mode .left-panel, .light-mode .right-panel { background-color: #e8e3d9; }
-.light-mode .settings-group-placeholder { border-top-color: #d1c9bd; }
+/* .light-mode .settings-group-placeholder { border-top-color: #d1c9bd; } */
 .light-mode .status-display { background-color: #dcd7cd; color: #5a5346; }
 .light-mode .status-display.running { background-color: #c8e6c9; color: #2e7d32; }
 .light-mode .status-display.stopped { background-color: #ffcdd2; color: #c62828; }
@@ -252,13 +281,14 @@ body.light-mode { background-color: #e8e3d9; color: #5a5346; }
 .light-mode .log-area::-webkit-scrollbar-thumb:hover {
     background-color: #b9b1a0;
 }
+/* .light-mode .bottom-info-buttons { border-top: 1px solid #d1c9bd; } */
 /* --- END: Light Mode Specifics --- */
 
 
 /* --- START: Dark Mode Specifics --- */
 body.dark-mode { background-color: #3a3a3a; color: #d1d1d1; }
 .dark-mode .left-panel, .dark-mode .right-panel { background-color: #3a3a3a; }
-.dark-mode .settings-group-placeholder { border-top-color: #4f4f4f; }
+/* .dark-mode .settings-group-placeholder { border-top-color: #4f4f4f; } */
 .dark-mode .status-display { background-color: #454545; color: #d1d1d1; }
 .dark-mode .status-display.running { background-color: #38593a; color: #a5d6a7; }
 .dark-mode .status-display.stopped { background-color: #733438; color: #ef9a9a; }
@@ -315,4 +345,5 @@ body.dark-mode { background-color: #3a3a3a; color: #d1d1d1; }
 .dark-mode .log-area::-webkit-scrollbar-thumb:hover {
     background-color: #6a6a6a;
 }
+/* .dark-mode .bottom-info-buttons { border-top: 1px solid #4f4f4f; } */
 /* --- END: Dark Mode Specifics --- */
