@@ -13,6 +13,7 @@ import os
 import platform
 import subprocess
 from typing import List, Dict, Any
+import copy # Added this import
 
 from application_bot import utils
 from application_bot.main import create_bot_application, run_bot_async, stop_bot_async
@@ -275,24 +276,31 @@ class PyWebviewApi:
         }
 
     def save_all_settings(self, new_settings_data: Dict[str, Any]) -> bool:
-        logger.info(f"GUI API: Received request to save all settings: {new_settings_data}")
+        # Create a deep copy for logging to avoid modifying the original data
+        loggable_settings_data = copy.deepcopy(new_settings_data)
+        if "BOT_TOKEN" in loggable_settings_data:
+            loggable_settings_data["BOT_TOKEN"] = "[REDACTED]"
+        
+        logger.info(f"GUI API: Received request to save all settings: {loggable_settings_data}") # Log the redacted version
+
         if not utils.SETTINGS:
             logger.error("GUI API: Cannot save settings, global utils.SETTINGS not loaded/initialized.")
             return False
         if not isinstance(new_settings_data, dict):
-            logger.error(f"GUI API: Invalid structure for settings data: {new_settings_data}")
+            logger.error(f"GUI API: Invalid structure for settings data: {new_settings_data}") # Original data for error
             return False
 
         utils.SETTINGS["OVERRIDE_USER_LANG"] = bool(new_settings_data.get("OVERRIDE_USER_LANG", True))
         utils.SETTINGS["THEME"] = str(new_settings_data.get("THEME", "default-dark"))
-        utils.SETTINGS["SELECTED_LOGO"] = str(new_settings_data.get("SELECTED_LOGO", "default")) # Added
+        utils.SETTINGS["SELECTED_LOGO"] = str(new_settings_data.get("SELECTED_LOGO", "default")) 
         # DEFAULT_LANG is handled by set_system_language API call
 
         bot_token = str(new_settings_data.get("BOT_TOKEN", "")).strip()
         if not bot_token:
             logger.error("GUI API: Bot Token cannot be empty.")
-            return False
-        utils.SETTINGS["BOT_TOKEN"] = bot_token
+            # The UI already has an alert for this, returning False will trigger the "save_failed" alert.
+            return False # This corresponds to save_failed due to validation.
+        utils.SETTINGS["BOT_TOKEN"] = bot_token # Save the original token
         utils.SETTINGS["ADMIN_USER_IDS"] = str(new_settings_data.get("ADMIN_USER_IDS", "")).strip()
 
         try:
@@ -309,9 +317,8 @@ class PyWebviewApi:
            isinstance(new_settings_data["PDF_SETTINGS"], dict):
 
             utils.SETTINGS["FONT_FILE_PATH"] = str(new_settings_data["FONT_FILE_PATH"]).strip()
-            if not utils.SETTINGS["FONT_FILE_PATH"]:
-                logger.error("GUI API: PDF Font File Path cannot be empty.")
-                # return False # UI should also validate this
+            # UI should validate FONT_FILE_PATH is not empty, matching BOT_TOKEN behavior.
+            # If empty, the get_and_register_font_from_settings will use Helvetica.
 
             if "PDF_SETTINGS" not in utils.SETTINGS:
                 utils.SETTINGS["PDF_SETTINGS"] = {}
@@ -321,9 +328,7 @@ class PyWebviewApi:
 
             try:
                 current_pdf_settings["font_name_registered"] = str(pdf_sub_settings_from_ui.get("font_name_registered", "CustomUnicodeFont")).strip()
-                if not current_pdf_settings["font_name_registered"]:
-                     logger.error("GUI API: PDF Registered Font Name cannot be empty.")
-                     # return False
+                # UI should validate font_name_registered is not empty.
 
                 current_pdf_settings["photo_position"] = str(pdf_sub_settings_from_ui.get("photo_position", "top_right"))
                 
@@ -339,16 +344,18 @@ class PyWebviewApi:
 
             except (ValueError, TypeError) as e:
                 logger.error(f"GUI API: Invalid data type in PDF sub-settings: {e}. Data: {pdf_sub_settings_from_ui}")
-                return False
+                return False # Corresponds to save_failed alert
         else:
             logger.warning("GUI API: FONT_FILE_PATH or PDF_SETTINGS structure missing/malformed in save_all_settings data.")
+            # Not returning False here as some settings might still be salvageable or it's a partial update.
+            # Frontend validation should ideally prevent malformed structures.
 
         if utils_save_settings(utils.SETTINGS):
             logger.info("GUI API: All settings saved successfully to settings.json.")
-            return True
+            return True # Corresponds to settings_saved alert
         else:
             logger.error("GUI API: Failed to save updated settings to settings.json.")
-            return False
+            return False # Corresponds to save_failed alert
 
 class BotGUI:
     def __init__(self):

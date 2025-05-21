@@ -17,7 +17,7 @@
     "HTTP_POOL_TIMEOUT": 15.0,
     "OVERRIDE_USER_LANG": true,
     "DEFAULT_LANG": "ru",
-    "THEME": "memphis",
+    "THEME": "default-light",
     "SELECTED_LOGO": "default",
     "PDF_SETTINGS": {
         "page_width_mm": 210.0,
