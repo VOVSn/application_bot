@@ -1,5 +1,5 @@
 {
-    "BOT_TOKEN": "YOUR_BOT_TOKEN_HERE",
+    "BOT_TOKEN": "779772cZCVJ17QFv290aA5Qc",
     "ADMIN_USER_IDS": "YOUR_ADMIN_ID_HERE",
     "APPLICATION_FOLDER": "applications",
     "QUESTIONS_FILE": "questions.json",
@@ -17,7 +17,7 @@
     "HTTP_POOL_TIMEOUT": 15.0,
     "OVERRIDE_USER_LANG": true,
     "DEFAULT_LANG": "ru",
-    "THEME": "memphis",
+    "THEME": "default-light",
     "SELECTED_LOGO": "default",
     "PDF_SETTINGS": {
         "page_width_mm": 210.0,

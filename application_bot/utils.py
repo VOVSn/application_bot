@@ -293,17 +293,17 @@ def get_text(key: str, lang: Optional[str] = None, default: Optional[str] = None
     if SETTINGS is None:
         logger.debug("get_text: SETTINGS not loaded. Triggering load.")
         load_settings()
-        if SETTINGS is None: 
+        if SETTINGS is None:
             logger.error("get_text: SETTINGS still not available after load attempt. Key: %s", key)
             return default if default is not None else f"<S_NF_{key}>"
 
     if LANGUAGES_CACHE is None:
         logger.debug("get_text: LANGUAGES_CACHE not loaded. Triggering load.")
         load_languages()
-        if LANGUAGES_CACHE is None: 
+        if LANGUAGES_CACHE is None:
             logger.error("get_text: LANGUAGES_CACHE still not available after load attempt. Key: %s", key)
             return default if default is not None else f"<L_NF_{key}>"
-            
+
     selected_lang = lang
     if selected_lang is None:
         selected_lang = SETTINGS.get("DEFAULT_LANG", "en")
@@ -313,40 +313,59 @@ def get_text(key: str, lang: Optional[str] = None, default: Optional[str] = None
         selected_lang = SETTINGS.get("DEFAULT_LANG", "en")
         if selected_lang not in LANGUAGES_CACHE:
             logger.debug(f"get_text: DEFAULT_LANG '{selected_lang}' also not in LANGUAGES_CACHE. Trying 'en'.")
-            selected_lang = "en" 
+            selected_lang = "en"
 
     lang_pack = LANGUAGES_CACHE.get(selected_lang)
-    
+
     if not lang_pack:
-        logger.error(f"I18N: Language pack for '{selected_lang}' (and fallbacks) not found. Key: '{key}'.")
-        return default if default is not None else f"<LP_NF_{key}_{selected_lang}>"
+        # Fallback to app default language if current selection isn't 'en' or app default
+        default_app_lang_for_pack = SETTINGS.get("DEFAULT_LANG", "en")
+        if selected_lang != default_app_lang_for_pack:
+            logger.debug(f"I18N: Language pack for '{selected_lang}' not found. Trying app default '{default_app_lang_for_pack}'.")
+            lang_pack = LANGUAGES_CACHE.get(default_app_lang_for_pack)
+            selected_lang = default_app_lang_for_pack # Update selected_lang for further checks
+        
+        if not lang_pack and selected_lang != "en": # Try 'en' if app default also fails
+            logger.debug(f"I18N: Language pack for app default '{selected_lang}' not found. Trying 'en'.")
+            lang_pack = LANGUAGES_CACHE.get("en")
+            selected_lang = "en" # Update selected_lang
+
+        if not lang_pack:
+            logger.error(f"I18N: Language pack for '{key}' (lang '{lang}', ultimate fallback '{selected_lang}') not found.")
+            return default if default is not None else f"<LP_NF_{key}_{lang or selected_lang}>"
+
 
     text_template = lang_pack.get(key)
 
     if text_template is None:
         default_app_lang = SETTINGS.get("DEFAULT_LANG", "en")
-        if selected_lang != default_app_lang:
+        if selected_lang != default_app_lang: # If not already app default, try app default
             logger.debug(f"I18N: Key '{key}' not found in '{selected_lang}'. Trying app default '{default_app_lang}'.")
             lang_pack_default_app = LANGUAGES_CACHE.get(default_app_lang)
             if lang_pack_default_app:
                 text_template = lang_pack_default_app.get(key)
-        
-        if text_template is None and selected_lang != "en" and default_app_lang != "en":
-            logger.debug(f"I18N: Key '{key}' not found in app default '{default_app_lang}'. Trying 'en'.")
+
+        if text_template is None and selected_lang != "en" and default_app_lang != "en": # If not already 'en' and app default wasn't 'en'
+            logger.debug(f"I18N: Key '{key}' not found in app default. Trying 'en'.")
             lang_pack_en = LANGUAGES_CACHE.get("en")
             if lang_pack_en:
                 text_template = lang_pack_en.get(key)
 
     if text_template is None:
         if default is not None: return default
-        logger.warning(f"I18N: Key '{key}' not found for lang '{lang}' or fallbacks ('{selected_lang}', app default, 'en').")
-        return f"<{key}_!{lang or selected_lang}>" 
-    
-    try:
-        return text_template.format(**kwargs)
-    except KeyError as e:
-        logger.warning(f"I18N: Placeholder {e} missing for key '{key}' in lang '{selected_lang}'. Template: '{text_template}'")
-        return text_template 
-    except Exception as e: 
-        logger.error(f"I18N: Formatting error for key '{key}', lang '{selected_lang}': {e}. Template: '{text_template}'")
-        return f"<F_ERR_{key}_{selected_lang}>"
+        logger.warning(f"I18N: Key '{key}' not found for lang '{lang}' or fallbacks. Returning key.")
+        return f"<{key}_!{lang or selected_lang}>"
+
+    if kwargs:  # Only attempt to format if specific placeholders are provided
+        try:
+            return text_template.format(**kwargs)
+        except KeyError as e:
+            logger.warning(f"I18N: Placeholder {e} missing for key '{key}' in lang '{selected_lang}'. Template: '{text_template}' Args: {kwargs}")
+            return text_template # Return raw template if formatting fails with provided args
+        except Exception as e:
+            logger.error(f"I18N: Generic formatting error for key '{key}', lang '{selected_lang}': {e}. Template: '{text_template}' Args: {kwargs}")
+            return f"<F_ERR_{key}_{selected_lang}>"
+    else:
+        # If no kwargs are provided, return the template string as is.
+        # This allows JavaScript to handle formatting for keys like 'gui_alert_question_text_empty'.
+        return text_template

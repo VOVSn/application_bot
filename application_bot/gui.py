@@ -13,6 +13,12 @@ import os
 import platform
 import subprocess
 from typing import List, Dict, Any
+import copy # Added this import
+import socket # Added for network check
+
+# Import the specific error types we want to handle gracefully
+from telegram.error import NetworkError as PTBNetworkError # Renamed to avoid clash
+from httpx import ConnectError, ReadTimeout, RemoteProtocolError, WriteTimeout, PoolTimeout
 
 from application_bot import utils
 from application_bot.main import create_bot_application, run_bot_async, stop_bot_async
@@ -70,7 +76,11 @@ def _get_gui_localization_texts(lang_code: str) -> dict:
         "gui_help_modal_title", "gui_help_modal_content",
         "gui_about_modal_title", "gui_about_modal_content",
         "gui_modal_info_ok_button",
-        "gui_logo_label", "gui_logo_default", "gui_logo_abc", "gui_logo_zaya" # Added logo keys
+        "gui_logo_label", "gui_logo_default", "gui_logo_abc", "gui_logo_zaya",
+        # Network status keys
+        "gui_status_connection_lost", "gui_status_connection_restored",
+        "gui_status_bot_paused_no_connection", "gui_status_bot_cannot_start_no_connection",
+        "gui_status_connection_lost_bot_stopped", "gui_status_attempting_restart_after_connection"
     ]
     if not utils.SETTINGS or not utils.LANGUAGES_CACHE:
          logger.warning("_get_gui_localization_texts: utils.SETTINGS or utils.LANGUAGES_CACHE not yet populated. Using keys as text.")
@@ -85,8 +95,46 @@ class WebviewLogHandler(logging.Handler):
     def __init__(self, log_queue_ref):
         super().__init__()
         self.log_queue = log_queue_ref
+        self.target_network_error_loggers = (
+            'telegram.ext.Updater',
+            'telegram.bot', 
+            'telegram.ext.ExtBot',
+        )
+        self.network_exception_types = (
+            PTBNetworkError, 
+            ConnectError,    
+            ReadTimeout,
+            RemoteProtocolError,
+            WriteTimeout,
+            PoolTimeout,
+            socket.gaierror, 
+            socket.timeout,  
+        )
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord):
+        if record.name in self.target_network_error_loggers and \
+           record.levelno >= logging.ERROR and \
+           record.exc_info:
+            
+            _etype, evalue, _tb = record.exc_info 
+            
+            if isinstance(evalue, self.network_exception_types):
+                date_fmt = self.formatter.datefmt if self.formatter else '%H:%M:%S'
+                timestamp = time.strftime(date_fmt, time.localtime(record.created))
+                
+                exc_class_name = evalue.__class__.__name__
+                exc_message_first_line = str(evalue).splitlines()[0] if str(evalue) else ""
+                
+                concise_msg = (
+                    f"{timestamp} [{record.levelname:<7s}] {record.name}: "
+                    f"Network issue: {exc_class_name}"
+                )
+                if exc_message_first_line:
+                    concise_msg += f" - {exc_message_first_line}"
+                
+                self.log_queue.put(concise_msg)
+                return 
+
         msg = self.format(record)
         self.log_queue.put(msg)
 
@@ -125,7 +173,7 @@ class PyWebviewApi:
             logger.error("GUI API: Cannot open applications folder, SETTINGS not loaded.")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_settings_not_loaded", self._gui.current_language, default="Error: Settings not loaded. Cannot open folder.")
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # Standard alert ok here
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") 
             return
 
         app_folder_name = utils.SETTINGS.get("APPLICATION_FOLDER")
@@ -133,7 +181,7 @@ class PyWebviewApi:
             logger.error("GUI API: APPLICATION_FOLDER not defined in settings.")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_app_folder_not_configured", self._gui.current_language, default="Error: Application folder not configured.")
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # Standard alert ok here
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") 
             return
 
         folder_path = get_external_file_path(app_folder_name)
@@ -147,7 +195,7 @@ class PyWebviewApi:
                 logger.error(f"GUI API: Could not create applications folder {folder_path}: {e}")
                 if self._gui.window:
                     alert_msg = get_text("gui_alert_cannot_create_folder", self._gui.current_language, default="Error: Could not create or access folder. Check logs.").format(folder=folder_path)
-                    self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # Standard alert ok here
+                    self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") 
                 return
 
         try:
@@ -163,7 +211,7 @@ class PyWebviewApi:
             logger.error(f"GUI API: Error opening folder '{normalized_folder_path}': {e}")
             if self._gui.window:
                 alert_msg = get_text("gui_alert_cannot_open_folder", self._gui.current_language, default="Error: Could not open folder. Check logs.").format(folder=normalized_folder_path)
-                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") # Standard alert ok here
+                self._gui._gui_eval_js(f"alert('{html.escape(alert_msg, quote=False)}')") 
 
     def set_system_language(self, lang_code: str):
         if not utils.SETTINGS:
@@ -214,7 +262,7 @@ class PyWebviewApi:
         logger.info(f"GUI API: Received request to save questions. Count: {len(questions_data) if questions_data else 'None'}")
         if not isinstance(questions_data, list):
             logger.error("GUI API: Invalid data format for saving questions. Expected a list.")
-            return False # Corresponds to "save_failed" alert
+            return False 
 
         for i, q_item in enumerate(questions_data):
             if not isinstance(q_item, dict) or "id" not in q_item or "text" not in q_item:
@@ -222,14 +270,14 @@ class PyWebviewApi:
                 return False
             if not q_item["text"]:
                  logger.error(f"GUI API: Question text is empty at index {i}: {q_item}.")
-                 return False # Corresponds to "save_failed" alert (after frontend validation)
+                 return False 
 
         if utils.save_questions(questions_data):
             logger.info("GUI API: Questions saved and reloaded successfully via utils.save_questions.")
-            return True # Corresponds to "questions_saved" alert
+            return True 
         else:
             logger.error("GUI API: Failed to save questions via utils.save_questions.")
-            return False # Corresponds to "save_failed" alert
+            return False 
 
     def get_all_settings(self) -> Dict[str, Any]:
         logger.info("GUI API: Received request for all settings.")
@@ -237,7 +285,7 @@ class PyWebviewApi:
             logger.critical("GUI API: utils.SETTINGS is unexpectedly None in get_all_settings. This shouldn't happen.")
             return {
                 "OVERRIDE_USER_LANG": True, "DEFAULT_LANG": "en", "THEME": "default-dark",
-                "SELECTED_LOGO": "default", # Added
+                "SELECTED_LOGO": "default", 
                 "BOT_TOKEN": "", "ADMIN_USER_IDS": "",
                 "APPLICATION_PHOTO_NUMB": 1, "SEND_PDF_TO_ADMINS": True,
                 "FONT_FILE_PATH": "fonts/DejaVuSans.ttf",
@@ -265,7 +313,7 @@ class PyWebviewApi:
             "OVERRIDE_USER_LANG": utils.SETTINGS.get("OVERRIDE_USER_LANG", True),
             "DEFAULT_LANG": utils.SETTINGS.get("DEFAULT_LANG", "en"),
             "THEME": utils.SETTINGS.get("THEME", "default-dark"),
-            "SELECTED_LOGO": utils.SETTINGS.get("SELECTED_LOGO", "default"), # Added
+            "SELECTED_LOGO": utils.SETTINGS.get("SELECTED_LOGO", "default"), 
             "BOT_TOKEN": utils.SETTINGS.get("BOT_TOKEN", ""),
             "ADMIN_USER_IDS": utils.SETTINGS.get("ADMIN_USER_IDS", ""),
             "APPLICATION_PHOTO_NUMB": utils.SETTINGS.get("APPLICATION_PHOTO_NUMB", 1),
@@ -275,24 +323,28 @@ class PyWebviewApi:
         }
 
     def save_all_settings(self, new_settings_data: Dict[str, Any]) -> bool:
-        logger.info(f"GUI API: Received request to save all settings: {new_settings_data}")
+        loggable_settings_data = copy.deepcopy(new_settings_data)
+        if "BOT_TOKEN" in loggable_settings_data:
+            loggable_settings_data["BOT_TOKEN"] = "[REDACTED]"
+        
+        logger.info(f"GUI API: Received request to save all settings: {loggable_settings_data}") 
+
         if not utils.SETTINGS:
             logger.error("GUI API: Cannot save settings, global utils.SETTINGS not loaded/initialized.")
             return False
         if not isinstance(new_settings_data, dict):
-            logger.error(f"GUI API: Invalid structure for settings data: {new_settings_data}")
+            logger.error(f"GUI API: Invalid structure for settings data: {new_settings_data}") 
             return False
 
         utils.SETTINGS["OVERRIDE_USER_LANG"] = bool(new_settings_data.get("OVERRIDE_USER_LANG", True))
         utils.SETTINGS["THEME"] = str(new_settings_data.get("THEME", "default-dark"))
-        utils.SETTINGS["SELECTED_LOGO"] = str(new_settings_data.get("SELECTED_LOGO", "default")) # Added
-        # DEFAULT_LANG is handled by set_system_language API call
-
+        utils.SETTINGS["SELECTED_LOGO"] = str(new_settings_data.get("SELECTED_LOGO", "default")) 
+        
         bot_token = str(new_settings_data.get("BOT_TOKEN", "")).strip()
         if not bot_token:
             logger.error("GUI API: Bot Token cannot be empty.")
-            return False
-        utils.SETTINGS["BOT_TOKEN"] = bot_token
+            return False 
+        utils.SETTINGS["BOT_TOKEN"] = bot_token 
         utils.SETTINGS["ADMIN_USER_IDS"] = str(new_settings_data.get("ADMIN_USER_IDS", "")).strip()
 
         try:
@@ -309,10 +361,7 @@ class PyWebviewApi:
            isinstance(new_settings_data["PDF_SETTINGS"], dict):
 
             utils.SETTINGS["FONT_FILE_PATH"] = str(new_settings_data["FONT_FILE_PATH"]).strip()
-            if not utils.SETTINGS["FONT_FILE_PATH"]:
-                logger.error("GUI API: PDF Font File Path cannot be empty.")
-                # return False # UI should also validate this
-
+            
             if "PDF_SETTINGS" not in utils.SETTINGS:
                 utils.SETTINGS["PDF_SETTINGS"] = {}
 
@@ -321,10 +370,6 @@ class PyWebviewApi:
 
             try:
                 current_pdf_settings["font_name_registered"] = str(pdf_sub_settings_from_ui.get("font_name_registered", "CustomUnicodeFont")).strip()
-                if not current_pdf_settings["font_name_registered"]:
-                     logger.error("GUI API: PDF Registered Font Name cannot be empty.")
-                     # return False
-
                 current_pdf_settings["photo_position"] = str(pdf_sub_settings_from_ui.get("photo_position", "top_right"))
                 
                 numeric_keys_float = ["page_width_mm", "page_height_mm", "margin_mm", "photo_width_mm"]
@@ -339,16 +384,16 @@ class PyWebviewApi:
 
             except (ValueError, TypeError) as e:
                 logger.error(f"GUI API: Invalid data type in PDF sub-settings: {e}. Data: {pdf_sub_settings_from_ui}")
-                return False
+                return False 
         else:
             logger.warning("GUI API: FONT_FILE_PATH or PDF_SETTINGS structure missing/malformed in save_all_settings data.")
 
         if utils_save_settings(utils.SETTINGS):
             logger.info("GUI API: All settings saved successfully to settings.json.")
-            return True
+            return True 
         else:
             logger.error("GUI API: Failed to save updated settings to settings.json.")
-            return False
+            return False 
 
 class BotGUI:
     def __init__(self):
@@ -360,11 +405,21 @@ class BotGUI:
         self.log_queue = queue.Queue()
         self.current_max_log_lines = MAX_LOG_LINES_DEFAULT
         self.log_deque = deque(maxlen=self.current_max_log_lines)
-        self.log_processing_active = False
+        
+        self.gui_active = True 
         self.log_processor_thread = None
+        
         self.current_language = "en" 
         self.initial_status_key = "gui_status_initializing"
         self.is_settings_loaded_successfully = False
+
+        self.is_network_connected = True  
+        self.connection_checker_thread = None
+        self.network_check_interval = 15  
+        self.bot_should_be_running = False  
+        self.last_connection_error_message_key = None 
+        self.bot_operation_lock = threading.Lock() # To prevent race conditions with bot start/stop
+
 
     def setup_gui_logging(self):
         gui_log_handler = WebviewLogHandler(self.log_queue)
@@ -381,16 +436,16 @@ class BotGUI:
             root_logger.addHandler(console_handler)
             
         root_logger.setLevel(logging.INFO)
-        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("httpx").setLevel(logging.WARNING) 
+        
         logging.getLogger("telegram").setLevel(logging.INFO) 
         logging.getLogger("httpcore").setLevel(logging.INFO)
         logger.info("GUI logging initialized.")
 
 
     def _process_log_queue_loop(self):
-        self.log_processing_active = True
         logger.info("GUI: Log processing thread started.")
-        while self.log_processing_active:
+        while self.gui_active:
             try:
                 messages_to_send = []
                 batch_size = 0 
@@ -419,6 +474,67 @@ class BotGUI:
             time.sleep(0.15 if not messages_to_send else 0.05) 
         logger.info("GUI: Log processing thread stopped.")
 
+    def _perform_network_check(self, host="api.telegram.org", port=443, timeout=5) -> bool:
+        try:
+            socket.create_connection((host, port), timeout=timeout).close()
+            return True
+        except OSError:
+            return False
+
+    def _check_connection_loop(self):
+        logger.info("GUI: Connection checker thread started.")
+        
+        while self.gui_active:
+            current_connection_status = self._perform_network_check()
+
+            if current_connection_status != self.is_network_connected:
+                self.is_network_connected = current_connection_status
+                logger.info(f"GUI: Network status changed to: {'Connected' if self.is_network_connected else 'Disconnected'}")
+
+                if self.is_network_connected:
+                    self.update_status("gui_status_connection_restored", is_running=None)
+                    if self.bot_should_be_running:
+                        logger.info("GUI: Network restored. Bot should be running. Ensuring a fresh start.")
+                        self.update_status("gui_status_attempting_restart_after_connection", is_running=None)
+                        # Force stop any lingering instance and then start fresh
+                        self._ensure_bot_stopped_for_restart()
+                        self.start_bot_action() 
+                else: # Network Lost
+                    logger.warning("GUI: Network connection lost.")
+                    self.update_status("gui_status_connection_lost", is_error=True, is_running=None)
+                    if self.bot_should_be_running:
+                        logger.info("GUI: Network lost while bot was intended to run. Attempting to stop current bot instance.")
+                        self._ensure_bot_stopped_for_restart() # Stop the bot if it was running
+                        # Status will be updated by update_status based on bot_should_be_running and is_network_connected
+            
+            time.sleep(self.network_check_interval)
+        logger.info("GUI: Connection checker thread stopped.")
+
+    def _ensure_bot_stopped_for_restart(self):
+        """Helper to stop the bot if it's running. Used before a network-related restart."""
+        with self.bot_operation_lock:
+            if self.bot_thread and self.bot_thread.is_alive():
+                logger.info("GUI: Internal call to stop bot for restart...")
+                if self.bot_application_instance and self.bot_event_loop and self.bot_event_loop.is_running():
+                    future = asyncio.run_coroutine_threadsafe(stop_bot_async(self.bot_application_instance), self.bot_event_loop)
+                    try:
+                        future.result(timeout=5) # Shorter timeout for internal stop
+                        logger.info("GUI: Bot instance stopped for restart.")
+                    except Exception as e:
+                        logger.warning(f"GUI: Error/timeout stopping bot instance for restart: {e}")
+                
+                # Wait for thread to finish, essential before starting a new one
+                self.bot_thread.join(timeout=5)
+                if self.bot_thread.is_alive():
+                    logger.warning("GUI: Bot thread did not terminate after stop command for restart.")
+                else:
+                    logger.info("GUI: Bot thread confirmed terminated for restart.")
+                self.bot_thread = None
+                self.bot_application_instance = None
+            else:
+                logger.info("GUI: No active bot instance to stop for restart.")
+
+
     def _gui_eval_js(self, script: str):
         if self.window:
             try:
@@ -426,30 +542,86 @@ class BotGUI:
             except Exception as e:
                 logger.debug(f"GUI: Failed to evaluate JS (window might be closing/closed): {e}. Script: {script[:100]}...")
 
+    def update_status_internal(self, message_key_or_text: str, is_error: bool = False, is_running: bool = None, is_raw_text: bool = False):
+        if self.window:
+            final_message_key_or_text = message_key_or_text
+            final_is_error = is_error
+            final_is_running = is_running 
+            final_is_raw_text = is_raw_text
+
+            if not self.is_network_connected and self.bot_should_be_running and message_key_or_text == "gui_status_stopped":
+                final_message_key_or_text = "gui_status_connection_lost_bot_stopped"
+                final_is_error = True
+                final_is_running = False 
+                final_is_raw_text = False
+                self.last_connection_error_message_key = final_message_key_or_text
+            
+            elif self.last_connection_error_message_key and message_key_or_text == "gui_status_stopped" and not self.is_network_connected:
+                final_message_key_or_text = self.last_connection_error_message_key
+                final_is_error = True
+                final_is_running = False
+                final_is_raw_text = False
+
+
+            js_message = json.dumps(final_message_key_or_text)
+            js_is_error = str(final_is_error).lower()
+            js_is_running_str = 'null' if final_is_running is None else str(final_is_running).lower()
+            js_is_raw_text = str(final_is_raw_text).lower()
+            
+            self._gui_eval_js(f'updateStatus({js_message}, {js_is_error}, {js_is_running_str}, {js_is_raw_text})')
 
     def update_status(self, message_key_or_text: str, is_error: bool = False, is_running: bool = None, is_raw_text: bool = False):
-        if self.window:
-            js_message = json.dumps(message_key_or_text)
-            js_is_error = str(is_error).lower()
-            js_is_running = 'null' if is_running is None else str(is_running).lower()
-            js_is_raw_text = str(is_raw_text).lower()
-            self._gui_eval_js(f'updateStatus({js_message}, {js_is_error}, {js_is_running}, {js_is_raw_text})')
+        if not self.is_network_connected and self.bot_should_be_running:
+            if message_key_or_text not in ["gui_status_connection_restored", "gui_status_attempting_restart_after_connection"]:
+                # If bot thread exists, it means PTB might be retrying internally. Buttons should reflect this.
+                current_bot_thread_alive = self.bot_thread and self.bot_thread.is_alive()
+                self.update_status_internal("gui_status_bot_paused_no_connection", True, current_bot_thread_alive, False)
+                self.last_connection_error_message_key = "gui_status_bot_paused_no_connection"
+                return
+
+        self.update_status_internal(message_key_or_text, is_error, is_running, is_raw_text)
+        
+        connection_error_keys = [
+            "gui_status_connection_lost", "gui_status_bot_paused_no_connection",
+            "gui_status_bot_cannot_start_no_connection", "gui_status_connection_lost_bot_stopped"
+        ]
+        if message_key_or_text in connection_error_keys:
+            self.last_connection_error_message_key = message_key_or_text
+        elif not is_error or message_key_or_text in ["gui_status_connection_restored", "gui_status_attempting_restart_after_connection", "gui_status_running", "gui_status_stopped"]:
+             if self.is_network_connected : 
+                self.last_connection_error_message_key = None
+
 
     def _run_bot_in_thread(self):
         self.bot_event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.bot_event_loop)
         try:
-            self.bot_application_instance = create_bot_application()
+            # This lock ensures that the bot_application_instance is not None when stop_bot_async is called.
+            with self.bot_operation_lock:
+                 self.bot_application_instance = create_bot_application()
+
             if self.bot_application_instance:
                 logger.info("GUI: Bot application instance created successfully.")
+                if not self.is_network_connected: # Re-check, network might have dropped
+                    logger.warning("GUI: Network connection lost before bot could fully start. Thread will exit.")
+                    self.update_status("gui_status_bot_cannot_start_no_connection", True, False) 
+                    return 
+
                 self.update_status("gui_status_running", is_running=True)
                 self.bot_event_loop.run_until_complete(run_bot_async(self.bot_application_instance))
             else:
                 logger.error("GUI: Failed to create bot application instance (likely BOT_TOKEN missing or invalid).")
                 self.update_status("gui_status_failed_create_app", True, False)
         except Exception as e:
-            logger.error(f"GUI: Unhandled exception in bot thread: {e}", exc_info=True)
-            self.update_status("gui_status_crashed", True, False)
+            # Log full traceback to console/file for debugging
+            logger.error(f"GUI: Unhandled exception in bot thread: {e}", exc_info=True) 
+            
+            is_network_related_exception = isinstance(e, (PTBNetworkError, ConnectError, ReadTimeout, RemoteProtocolError, WriteTimeout, PoolTimeout, socket.gaierror, socket.timeout))
+
+            if not self.is_network_connected or is_network_related_exception:
+                self.update_status("gui_status_bot_paused_no_connection", True, False)
+            else:
+                self.update_status("gui_status_crashed", True, False)
         finally:
             logger.info("GUI: Bot thread processing finished.")
             if self.bot_event_loop and self.bot_event_loop.is_running():
@@ -457,33 +629,54 @@ class BotGUI:
                 except Exception as e_loop_stop: logger.error(f"GUI: Error stopping bot event loop: {e_loop_stop}")
             if self.bot_event_loop and not self.bot_event_loop.is_closed():
                 self.bot_event_loop.close()
-            self._reset_ui_to_stopped_state()
+            
+            with self.bot_operation_lock: # Ensure instance is cleared safely
+                self.bot_application_instance = None
+            
+            # Only reset UI to stopped if user didn't intend to stop or if network is fine
+            # If bot_should_be_running and network is down, connection_checker handles restart attempt
+            if not (self.bot_should_be_running and not self.is_network_connected):
+                 self._reset_ui_to_stopped_state()
 
 
     def start_bot_action(self):
-        if not self.is_settings_loaded_successfully:
-            self.update_status("gui_status_settings_not_loaded", True, False)
-            logger.error("GUI: Attempted to start bot, but settings.json was not loaded successfully.")
-            return
-        if not utils.SETTINGS or not utils.SETTINGS.get("BOT_TOKEN"):
-             self.update_status(get_text("gui_alert_bot_token_empty", self.current_language), True, False, is_raw_text=True)
-             logger.error("GUI: Attempted to start bot, but BOT_TOKEN is missing in settings.")
-             return
-        if utils.QUESTIONS is None: 
-            if not load_questions():
-                logger.warning("GUI: questions.json could not be loaded. /apply command may fail or use empty questions.")
-        
-        if self.bot_thread and self.bot_thread.is_alive():
-            logger.info("GUI: Bot is already running or starting.")
-            return
+        with self.bot_operation_lock:
+            self.bot_should_be_running = True 
 
-        self._gui_eval_js('setButtonState("start-button", false)')
-        self._gui_eval_js('setButtonState("stop-button", true)')
-        self.update_status("gui_status_starting", is_running=None)
-        logger.info("GUI: Initiating bot start sequence...")
+            if not self.is_network_connected:
+                logger.error("GUI: Cannot start bot, no internet connection.")
+                self.update_status("gui_status_bot_cannot_start_no_connection", True, False)
+                return
 
-        self.bot_thread = threading.Thread(target=self._run_bot_in_thread, daemon=True)
-        self.bot_thread.start()
+            if not self.is_settings_loaded_successfully:
+                self.update_status("gui_status_settings_not_loaded", True, False)
+                logger.error("GUI: Attempted to start bot, but settings.json was not loaded successfully.")
+                self.bot_should_be_running = False 
+                return
+            if not utils.SETTINGS or not utils.SETTINGS.get("BOT_TOKEN"):
+                self.update_status(get_text("gui_alert_bot_token_empty", self.current_language), True, False, is_raw_text=True)
+                logger.error("GUI: Attempted to start bot, but BOT_TOKEN is missing in settings.")
+                self.bot_should_be_running = False 
+                return
+            if utils.QUESTIONS is None: 
+                if not load_questions():
+                    logger.warning("GUI: questions.json could not be loaded. /apply command may fail or use empty questions.")
+            
+            if self.bot_thread and self.bot_thread.is_alive():
+                logger.info("GUI: Bot is already running or starting.")
+                if self.is_network_connected:
+                    self.update_status("gui_status_running", is_running=True)
+                else: 
+                    self.update_status("gui_status_bot_paused_no_connection", is_error=True, is_running=True)
+                return
+
+            self._gui_eval_js('setButtonState("start-button", false)')
+            self._gui_eval_js('setButtonState("stop-button", true)')
+            self.update_status("gui_status_starting", is_running=None) 
+            logger.info("GUI: Initiating bot start sequence...")
+
+            self.bot_thread = threading.Thread(target=self._run_bot_in_thread, daemon=True)
+            self.bot_thread.start()
 
     def _reset_ui_to_stopped_state(self):
         self._gui_eval_js('setButtonState("start-button", true)')
@@ -491,46 +684,55 @@ class BotGUI:
         
         status_key = "gui_status_stopped"
         is_error = False
-        is_raw = False
-        if not self.is_settings_loaded_successfully:
+        is_raw_text = False
+
+        if self.bot_should_be_running and not self.is_network_connected:
+            status_key = "gui_status_connection_lost_bot_stopped"
+            is_error = True
+            self.last_connection_error_message_key = status_key
+        elif not self.is_settings_loaded_successfully:
             status_key = "gui_status_settings_not_loaded"
             is_error = True
         elif not utils.SETTINGS or not utils.SETTINGS.get("BOT_TOKEN"):
             status_key = get_text("gui_alert_bot_token_empty", self.current_language, default="Bot token is missing.")
             is_error = True
-            is_raw = True 
+            is_raw_text = True
         
-        self.update_status(status_key, is_error=is_error, is_running=False, is_raw_text=is_raw)
+        self.update_status_internal(status_key, is_error=is_error, is_running=False, is_raw_text=is_raw_text)
             
-        self.bot_application_instance = None
+        # self.bot_application_instance = None # Moved to _run_bot_in_thread finally with lock
 
 
     def stop_bot_action(self):
-        if not self.bot_thread or not self.bot_thread.is_alive():
-            logger.info("GUI: Bot is not currently running or already stopping.")
-            self._reset_ui_to_stopped_state()
-            return
+        with self.bot_operation_lock:
+            self.bot_should_be_running = False 
 
-        if not self.bot_application_instance or not self.bot_event_loop:
-            logger.warning("GUI: Stop called, but bot instance or event loop is missing. Forcing UI reset.")
-            self._reset_ui_to_stopped_state()
-            return
+            if not self.bot_thread or not self.bot_thread.is_alive():
+                logger.info("GUI: Bot is not currently running or already stopping.")
+                self._reset_ui_to_stopped_state() 
+                return
 
-        self.update_status("gui_status_stopping", is_running=None)
-        logger.info("GUI: Initiating bot stop sequence...")
+            if not self.bot_application_instance or not self.bot_event_loop:
+                logger.warning("GUI: Stop called, but bot instance or event loop is missing. Forcing UI reset.")
+                self._reset_ui_to_stopped_state()
+                return
 
-        if self.bot_event_loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(stop_bot_async(self.bot_application_instance), self.bot_event_loop)
-            try:
-                future.result(timeout=15)
-                logger.info("GUI: Stop command sent and processed by bot thread.")
-            except asyncio.TimeoutError:
-                logger.warning("GUI: Timeout waiting for bot stop confirmation. Bot thread might take longer or be stuck.")
-            except Exception as e:
-                logger.error(f"GUI: Error during run_coroutine_threadsafe for stop: {e}")
-        else:
-            logger.warning("GUI: Bot event loop not running. Cannot send stop command gracefully.")
+            self.update_status("gui_status_stopping", is_running=None)
+            logger.info("GUI: Initiating bot stop sequence...")
+
+            if self.bot_event_loop.is_running() and self.bot_application_instance:
+                future = asyncio.run_coroutine_threadsafe(stop_bot_async(self.bot_application_instance), self.bot_event_loop)
+                try:
+                    future.result(timeout=15)
+                    logger.info("GUI: Stop command sent and processed by bot thread.")
+                except asyncio.TimeoutError:
+                    logger.warning("GUI: Timeout waiting for bot stop confirmation. Bot thread might take longer or be stuck.")
+                except Exception as e:
+                    logger.error(f"GUI: Error during run_coroutine_threadsafe for stop: {e}")
+            else:
+                logger.warning("GUI: Bot event loop not running or instance missing. Cannot send stop command gracefully.")
         
+        # _reset_ui_to_stopped_state will be called by the bot_thread's finally block.
 
     def on_frontend_ready(self):
         logger.info("GUI: Frontend reported ready. Initializing GUI state.")
@@ -543,14 +745,17 @@ class BotGUI:
         initial_config = {
             "currentLang": self.current_language,
             "currentTheme": utils.SETTINGS.get("THEME", "default-dark") if utils.SETTINGS else "default-dark",
-            "currentLogo": utils.SETTINGS.get("SELECTED_LOGO", "default") if utils.SETTINGS else "default", # Added
+            "currentLogo": utils.SETTINGS.get("SELECTED_LOGO", "default") if utils.SETTINGS else "default",
             "guiTranslations": gui_translations,
             "maxLogLines": self.current_max_log_lines,
             "initialLogs": [html.escape(log_item, quote=False) for log_item in list(self.log_deque)]
         }
         self._gui_eval_js(f"initializeGui({json.dumps(initial_config)})")
         
-        self._reset_ui_to_stopped_state()
+        if not self.is_network_connected:
+            self.update_status("gui_status_connection_lost_bot_stopped", True, False)
+        else:
+            self._reset_ui_to_stopped_state()
 
 
     def set_max_log_lines_config(self, count: int):
@@ -577,8 +782,17 @@ class BotGUI:
         self.log_processor_thread = threading.Thread(target=self._process_log_queue_loop, daemon=True)
         self.log_processor_thread.start()
 
+        self.connection_checker_thread = threading.Thread(target=self._check_connection_loop, daemon=True)
+        self.connection_checker_thread.start()
+
+
         html_file_rel_path = "web_ui/gui.html"
         html_file_abs_path = get_asset_path(html_file_rel_path)
+        
+        self.is_network_connected = self._perform_network_check()
+        if not self.is_network_connected:
+            self.initial_status_key = "gui_status_connection_lost_bot_stopped" 
+            logger.warning("GUI: Initial network check failed. Starting with connection lost status.")
         
         initial_title = get_text("gui_title", self.current_language, default="Application Bot Control")
 
@@ -609,25 +823,28 @@ class BotGUI:
     def perform_app_cleanup(self):
         logger.info("GUI: Starting application cleanup sequence.")
         
-        self.log_processing_active = False
+        self.gui_active = False 
+        self.bot_should_be_running = False # Ensure no restarts are attempted during cleanup
 
-        if self.bot_thread and self.bot_thread.is_alive():
-            logger.info("GUI: Bot is running, attempting to stop it during cleanup.")
-            if self.bot_application_instance and self.bot_event_loop and self.bot_event_loop.is_running():
-                future = asyncio.run_coroutine_threadsafe(stop_bot_async(self.bot_application_instance), self.bot_event_loop)
-                try:
-                    future.result(timeout=7)
-                    logger.info("GUI: Bot stop command processed during cleanup.")
-                except Exception as e:
-                    logger.warning(f"GUI: Error or timeout stopping bot during cleanup: {e}")
-            
-            self.bot_thread.join(timeout=7)
-            if self.bot_thread.is_alive():
-                logger.warning("GUI: Bot thread did not terminate gracefully after stop and join.")
+        with self.bot_operation_lock:
+            if self.bot_thread and self.bot_thread.is_alive():
+                logger.info("GUI: Bot is running, attempting to stop it during cleanup.")
+                if self.bot_application_instance and self.bot_event_loop and self.bot_event_loop.is_running():
+                    future = asyncio.run_coroutine_threadsafe(stop_bot_async(self.bot_application_instance), self.bot_event_loop)
+                    try:
+                        future.result(timeout=7)
+                        logger.info("GUI: Bot stop command processed during cleanup.")
+                    except Exception as e:
+                        logger.warning(f"GUI: Error or timeout stopping bot during cleanup: {e}")
+                
+                self.bot_thread.join(timeout=7)
+                if self.bot_thread.is_alive():
+                    logger.warning("GUI: Bot thread did not terminate gracefully after stop and join.")
+                else:
+                    logger.info("GUI: Bot thread terminated.")
             else:
-                logger.info("GUI: Bot thread terminated.")
-        else:
-            logger.info("GUI: Bot thread was not running or already finished at cleanup.")
+                logger.info("GUI: Bot thread was not running or already finished at cleanup.")
+            self.bot_application_instance = None # Clear it finally
 
         if self.log_processor_thread and self.log_processor_thread.is_alive():
             self.log_processor_thread.join(timeout=3)
@@ -637,6 +854,15 @@ class BotGUI:
                 logger.info("GUI: Log processor thread terminated.")
         else:
             logger.info("GUI: Log processor thread was not running or already finished at cleanup.")
+        
+        if self.connection_checker_thread and self.connection_checker_thread.is_alive():
+            self.connection_checker_thread.join(timeout=self.network_check_interval + 1) 
+            if self.connection_checker_thread.is_alive():
+                logger.warning("GUI: Connection checker thread did not terminate.")
+            else:
+                logger.info("GUI: Connection checker thread terminated.")
+        else:
+            logger.info("GUI: Connection checker thread was not running or already finished at cleanup.")
             
         logger.info("GUI: Application cleanup finished.")
 
