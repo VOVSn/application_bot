@@ -8,7 +8,7 @@ This project is a Python-based Telegram bot designed to collect user application
 
 ---
 
-## Features / Особенности
+## Features
 
 *   **Telegram Bot Interface**: Users interact with the bot via Telegram commands.
 *   **Guided Application Process**: Asks a series of predefined questions.
@@ -24,6 +24,7 @@ This project is a Python-based Telegram bot designed to collect user application
 *   **Error Handling & Logging**: Robust logging for easier debugging and monitoring.
 *   **Executable Packaging**: Includes a PyInstaller `.spec` file to build a standalone executable.
 
+## Особенности
 
 *   **Интерфейс Telegram-бота**: Пользователи взаимодействуют с ботом через команды Telegram.
 *   **Пошаговый процесс подачи заявки**: Задает серию предопределенных вопросов.
